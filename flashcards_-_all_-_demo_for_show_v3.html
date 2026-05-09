@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AP Psychology — Flashcards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --font-display: 'Instrument Serif', serif;
+  --font-body:    'Manrope', sans-serif;
+  --font-mono:    'DM Mono', monospace;
+  --text: #1a1828;
+  --text2: #555;
+  --text3: #888;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%; font-family: var(--font-body); background: #f9f9f7; color: var(--text);
+}
+
+#flashcards-view {
+  display: flex; flex-direction: column; min-height: 100vh; overflow-y: auto;
+  background: #f9f9f7; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Deck chooser */
+#fc-home {
+  max-width: 860px; margin: 0 auto; padding: 24px 28px; width: 100%;
+}
+.fc-home-header {
+  text-align: center; margin-bottom: 24px;
+}
+.fc-home-title {
+  font-family: var(--font-display); font-size: 1.4rem; font-weight: 800; color: #1a1828; margin-bottom: 4px;
+}
+.fc-home-sub { font-size: 1.05rem; color: #888; }
+.fc-unit-section { margin-bottom: 22px; }
+.fc-unit-label {
+  font-size: 0.92rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  color: #9490a8; font-family: var(--font-mono); margin-bottom: 10px;
+  padding-bottom: 5px; border-bottom: 1px solid #e8e7e0;
+}
+.fc-deck-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+.fc-deck-btn {
+  background: #fff; border: 1.5px solid #e0dfe8; border-radius: 10px;
+  padding: 12px 16px; cursor: pointer; text-align: left;
+  transition: border-color .18s, box-shadow .18s; min-width: 180px; max-width: 220px; flex: 1;
+}
+.fc-deck-btn:hover { box-shadow: 0 3px 12px rgba(83,74,183,.12); }
+.fc-deck-tag {
+  display: inline-block; font-size: 0.9rem; font-weight: 700; padding: 2px 8px;
+  border-radius: 20px; margin-bottom: 6px; font-family: var(--font-mono);
+}
+.fc-deck-name { font-weight: 700; font-size: 1.06rem; color: #1a1828; margin-bottom: 2px; line-height: 1.3; }
+.fc-deck-count { font-size: 0.98rem; color: #888; }
+
+/* Study area */
+#fc-study {
+  display: none; flex-direction: column; flex: 1; max-width: 860px; margin: 0 auto; width: 100%; padding: 16px 28px;
+}
+#fc-study.active { display: flex; }
+
+/* Mode tabs */
+#fc-nav {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+  padding-bottom: 12px; border-bottom: 1px solid #e8e7e0; flex-wrap: wrap;
+}
+#fc-deck-title { flex: 1; font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; color: #1a1828; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fc-mode-tabs { display: flex; gap: 4px; background: #f1f0e8; padding: 3px; border-radius: 9px; }
+.fc-mode-btn {
+  padding: 5px 12px; font-size: 0.98rem; font-weight: 600; border-radius: 6px; border: none;
+  background: transparent; cursor: pointer; color: #888; transition: all .15s;
+}
+.fc-mode-btn.active { background: #fff; color: #1a1828; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+.fc-back-btn {
+  padding: 5px 11px; font-size: 0.98rem; border-radius: 7px; border: 1px solid #d0cfd6;
+  background: #fff; cursor: pointer; color: #666; font-weight: 600;
+}
+.fc-back-btn:hover { background: #f1f0e8; }
+
+/* Browse */
+#fc-browse .fc-search-wrap { position: relative; margin-bottom: 10px; }
+#fc-browse .fc-search-wrap input {
+  width: 100%; padding: 9px 14px 9px 36px; font-size: 1.08rem; border: 1px solid #d8d7ce;
+  border-radius: 9px; background: #fff; outline: none; color: #1a1828;
+}
+#fc-browse .fc-search-wrap input:focus { border-color: #534AB7; box-shadow: 0 0 0 3px rgba(83,74,183,.1); }
+.fc-search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #aaa; pointer-events: none; }
+.fc-count-badge {
+  display: inline-block; background: #EEEDFE; color: #534AB7; font-size: 0.98rem;
+  font-weight: 700; padding: 3px 10px; border-radius: 20px; margin-bottom: 10px;
+  font-family: var(--font-mono);
+}
+.fc-term-row {
+  display: flex; flex-direction: column; gap: 2px; padding: 14px 16px;
+  border: 1px solid #e8e7e0; border-radius: 9px; font-size: 1.06rem;
+  background: #fff; margin-bottom: 5px;
+}
+.fc-term-row:hover { border-color: #c0bfb6; }
+.fc-term-word { font-weight: 700; color: #1a1828; font-size: 1.1rem; }
+.fc-term-def { color: #555; line-height: 1.55; }
+
+/* Flashcard Learn */
+#fc-learn { display: none; }
+#fc-learn.active { display: block; max-width: 560px; margin: 0 auto; }
+.fc-progress-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.fc-prog-track { flex: 1; height: 5px; background: #e8e7e0; border-radius: 5px; overflow: hidden; }
+.fc-prog-bar { height: 5px; border-radius: 5px; transition: width .4s ease; }
+.fc-prog-label { font-size: 1.02rem; color: #888; white-space: nowrap; font-weight: 600; font-family: var(--font-mono); }
+.fc-card-wrap {
+  perspective: 1200px; height: 220px; cursor: pointer; margin-bottom: 10px;
+}
+.fc-card-inner {
+  position: relative; width: 100%; height: 100%;
+  transition: transform .5s cubic-bezier(.4,0,.2,1); transform-style: preserve-3d;
+}
+.fc-card-wrap.flipped .fc-card-inner { transform: rotateY(180deg); }
+.fc-card-face {
+  position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
+  border: 1px solid #e0dfe8; border-radius: 14px; background: #fff;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 1.5rem; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+.fc-card-back-face { transform: rotateY(180deg); background: #f8f7ff; border-color: #c8c5ef; }
+.fc-card-label {
+  font-size: 0.95rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: #aaa; margin-bottom: 12px; font-family: var(--font-mono);
+}
+.fc-card-term { font-size: 1.1rem; font-weight: 700; color: #1a1828; line-height: 1.5; }
+.fc-card-def { font-size: 1.08rem; color: #444; line-height: 1.65; font-weight: 400; }
+.fc-flip-hint { text-align: center; font-size: 0.97rem; color: #ccc; margin-bottom: 14px; }
+.fc-learn-btns { display: flex; gap: 12px; justify-content: center; }
+.fc-learn-btn {
+  padding: 10px 24px; border-radius: 9px; font-size: 1.06rem; font-weight: 700;
+  cursor: pointer; border: none; transition: all .15s;
+}
+.fc-btn-got { background: #E1F5EE; color: #0F6E56; }
+.fc-btn-got:hover { background: #c8efdf; }
+.fc-btn-miss { background: #FAECE7; color: #993C1D; }
+.fc-btn-miss:hover { background: #f5d4c8; }
+
+/* Round result */
+#fc-result { display: none; text-align: center; padding: 1.5rem; }
+#fc-result.active { display: block; }
+.fc-result-title { font-family: var(--font-display); font-size: 1.2rem; font-weight: 800; margin-bottom: 12px; }
+.fc-stats { display: flex; gap: 12px; justify-content: center; margin-bottom: 16px; }
+.fc-stat { background: #f1f0e8; border-radius: 9px; padding: 10px 20px; text-align: center; }
+.fc-stat .sn { font-size: 1.4rem; font-weight: 800; }
+.fc-stat .sl { font-size: 0.97rem; color: #888; margin-top: 2px; }
+.fc-stat.good .sn { color: #0F6E56; }
+.fc-stat.miss .sn { color: #993C1D; }
+.fc-result-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.fc-r-btn { padding: 9px 20px; border-radius: 8px; font-size: 1.06rem; font-weight: 700; cursor: pointer; border: 1.5px solid #d0cfd6; background: #fff; color: #1a1828; transition: all .15s; }
+.fc-r-btn:hover { background: #f1f0e8; }
+.fc-r-btn.primary { background: #534AB7; border-color: #534AB7; color: #fff; }
+.fc-r-btn.primary:hover { background: #3C3489; }
+
+/* Match game */
+#fc-match { display: none; }
+#fc-match.active { display: block; }
+.fc-match-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
+.fc-match-timer { font-size: 1.3rem; font-weight: 800; color: #534AB7; font-family: var(--font-mono); }
+.fc-match-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+@media(max-width:600px){.fc-match-grid{grid-template-columns:repeat(2,1fr)}}
+.fc-match-card {
+  padding: 10px 8px; border: 1.5px solid #d8d7ce; border-radius: 10px;
+  background: #fff; cursor: pointer; font-size: 0.98rem; text-align: center;
+  line-height: 1.4; min-height: 64px; display: flex; align-items: center; justify-content: center;
+  transition: all .15s; user-select: none; font-weight: 600; color: #333;
+}
+.fc-match-card:hover { border-color: #534AB7; background: #f8f7ff; }
+.fc-match-card.sel { border-color: #534AB7; background: #EEEDFE; color: #3C3489; box-shadow: 0 0 0 3px rgba(83,74,183,.15); }
+.fc-match-card.matched { border-color: #15803d; background: #bbf7d0; color: #052e16; pointer-events: none; box-shadow: 0 0 0 3px rgba(22,163,74,.3); transition: all .3s; }
+.fc-match-card.wrong { border-color: #b91c1c; background: #fecaca; color: #7f1d1d; box-shadow: 0 0 0 3px rgba(220,38,38,.25); animation: fcShake .3s ease; }
+@keyframes fcShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.fc-match-done { background: #E1F5EE; border: 1px solid #9FE1CB; border-radius: 12px; padding: 1.5rem; text-align: center; margin-top: 12px; }
+.fc-match-done h3 { font-size: 1.1rem; font-weight: 800; color: #0F6E56; margin-bottom: 6px; }
+.fc-match-done p { color: #0F6E56; font-size: 1.06rem; margin-bottom: 10px; }
+
+/* MCQ */
+#fc-mcq { display: none; }
+#fc-mcq.active { display: block; max-width: 580px; margin: 0 auto; }
+.fc-mcq-q {
+  font-size: 1.05rem; font-weight: 700; background: #fff; border: 2px solid #e0dfe8;
+  border-radius: 14px; padding: 1.5rem; text-align: center; margin: 14px 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06); line-height: 1.5; color: #1a1828;
+}
+.fc-mcq-opts { display: flex; flex-direction: column; gap: 7px; }
+.fc-mcq-opt {
+  padding: 12px 16px; border: 1.5px solid #d8d7ce; border-radius: 9px; background: #fff;
+  cursor: pointer; font-size: 1.06rem; text-align: left; line-height: 1.5; transition: all .15s;
+  font-weight: 500; color: #333;
+}
+.fc-mcq-opt:hover { border-color: #534AB7; background: #f8f7ff; }
+.fc-mcq-opt.correct { border-color: #15803d; background: #bbf7d0; color: #052e16; pointer-events: none; box-shadow: 0 0 0 3px rgba(22,163,74,.3); }
+.fc-mcq-opt.wrong { border-color: #b91c1c; background: #fecaca; color: #7f1d1d; pointer-events: none; }
+.fc-mcq-opt.show-ans { border-color: #15803d; background: #bbf7d0; color: #052e16; }
+.fc-mcq-opt.disabled { pointer-events: none; opacity: .35; }
+.fc-mcq-score { text-align: center; font-size: 1.02rem; color: #888; margin-bottom: 10px; font-family: var(--font-mono); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div id="flashcards-view"></div>
+
+<script>
+// ── Stubs for app integration points ──────────────
+function tmrSetContext() {}  // timer context stub
+const currentView = 'flashcards';  // always in flashcard view
+const UNITS_DATA = [];  // not needed standalone
+function isTopicDone() { return false; }
+function crvRecordReview() {}
+
+// ── FLASHCARD UTILITY HELPERS ─────────────────────────────
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function shuffle(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]; } return a; }
+</script>
+
+<script>
+const FC_DECKS = {
+
+  // ── UNIT 0: Research Methods ───────────────────────
+  u0: {
+    label:'Unit 0 — Research Methods', tag:'Unit 0', color:'#9490a8',
+    cards:[
+      {t:'Scientific Attitude', d:'Curiosity + Skepticism + Humility — the mindset that drives good psychological research.', e:'A researcher doubts a viral study about "brain training" and designs a replication to check if the effect holds.'},
+      {t:'Hypothesis', d:'A specific, testable, and falsifiable prediction about the relationship between two or more variables.', e:'Students who sleep 8+ hours will score higher on tomorrow\'s quiz than students who sleep fewer than 6 hours.'},
+      {t:'Independent Variable (IV)', d:'What the researcher manipulates — the cause in an experiment.', e:'In a caffeine study, the IV is the amount of caffeine given (0 mg vs. 200 mg).'},
+      {t:'Dependent Variable (DV)', d:'What is measured — the effect in an experiment.', e:'In the caffeine study, the DV is the participants\' reaction time measured in milliseconds.'},
+      {t:'Confounding Variable', d:'An extraneous factor that could influence the DV alongside the IV.', e:'In a study linking ice cream sales to drowning rates, hot weather is the confound causing both.'},
+      {t:'Equal-Chance Participant Grouping', d:'Randomly assigning people into experimental or control conditions so pre-existing differences are evenly spread.', e:'Flipping a coin to assign each person to the therapy group or the control group.'},
+      {t:'Random Selection / Sampling', d:'Each individual in a population has an equal chance of being chosen — ensures a representative subset of participants.', e:'Using a lottery-style generator to select 200 students from a school roster of 2,000.'},
+      {t:'Operational Definition', d:'A precise, measurable description of how a variable is specified and quantified in a specific study.', e:'Defining "anxiety" as a score ≥ 15 on the GAD-7 questionnaire.'},
+      {t:'Replication', d:'Repeating a study with different participants to verify findings.', e:'Attempting to reproduce Milgram\'s obedience study at a different university to see if results hold.'},
+      {t:'Case Study', d:'An in-depth analysis of one individual or group; provides rich detail but poor generalizability.', e:'Phineas Gage — the railroad worker whose personality changed after an iron rod pierced his frontal lobe — was examined in extraordinary depth by researchers.'},
+      {t:'Naturalistic Observation', d:'Watching behavior unfold in real-world settings without interference; high external validity.', e:'Researchers sit in a park and record how often children share toys without intervening.'},
+      {t:'Survey Method', d:'Self-reported data from a sample; must be representative to generalize; subject to social desirability bias.', e:'1,000 randomly selected Americans are polled about their social media use and reported loneliness.'},
+      {t:'Correlational Study', d:'Measures the relationship between variables; CANNOT establish causation.', e:'Students who take notes by hand have higher exam scores — but this doesn\'t prove note-taking style causes the difference.'},
+      {t:'Correlation Coefficient (r)', d:'Ranges from -1.00 to +1.00; indicates strength and direction of a relationship.', e:'r = +0.85 between hours studied and test score; r = –0.72 between absences and GPA.'},
+      {t:'Third Variable Problem', d:'An unseen factor may be causing both correlated outcomes — correlation ≠ causation.', e:'Shoe size and reading ability correlate in children — but age causes both, not each other.'},
+      {t:'Experiment', d:'The ONLY method that can establish cause-and-effect; uses random assignment and a control group.', e:'Randomly assigning half the class to study with background music and half without, then comparing quiz scores.'},
+      {t:'Control Group', d:'The condition not exposed to the IV — used as a baseline for comparison.', e:'In a drug trial, one condition receives a sugar pill (no active treatment) while the experimental condition gets the real medication.'},
+      {t:'Placebo Effect', d:'Improvement due to belief in treatment, not the treatment itself.', e:'Patients report less pain after receiving a saline injection they believed was morphine.'},
+      {t:'Double-Blind Procedure', d:'Neither participants nor researchers know who is in which group — eliminates both placebo effect and experimenter bias.', e:'In a drug trial, neither the patients nor the nurses distributing pills know who is receiving the real drug.'},
+      {t:'Experimenter Bias', d:'Researchers\' expectations unconsciously influence study results.', e:'A researcher who believes the treatment works inadvertently gives enthusiastic cues to treatment-group participants.'},
+      {t:'Sampling Bias', d:'The chosen subset of participants does not accurately represent the population — limits generalizability.', e:'Polling only smartphone users about technology habits misses people who don\'t own smartphones.'},
+      {t:'Hindsight Bias', d:'"I-knew-it-all-along" phenomenon — tendency to believe outcomes were predictable after they occur.', e:'After a sports upset, fans say "I knew the underdog would win" — even though they had not predicted it beforehand.'},
+      {t:'Overconfidence', d:'We tend to think we know more than we do; our certainty exceeds our accuracy.', e:'Students estimate they\'ll score 90% on a test but average 72%.'},
+      {t:'Meta-Analysis', d:'Statistical technique combining data from many studies on the same topic for a more reliable conclusion.', e:'A researcher combines 50 studies on CBT for depression to calculate the overall effect size.'},
+      {t:'Informed Consent', d:'Participants must understand risks before agreeing to participate.', e:'Participants sign a form explaining potential risks of a stress-induction experiment before it begins.'},
+      {t:'Debriefing', d:'Explaining the true purpose of a study to participants after it ends.', e:'After a deception study on helping behavior, the researcher explains the true purpose and ensures no lasting distress.'},
+      {t:'Mean', d:'Arithmetic average: sum of scores ÷ number of scores.', e:'Scores: 70, 80, 90 → Average = (70+80+90)/3 = 80.'},
+      {t:'Median', d:'The midpoint of a distribution — less affected by extreme scores than the mean.', e:'Scores: 20, 70, 75, 80, 85 → Middle value = 75 (unaffected by the outlier 20).'},
+      {t:'Mode', d:'The most frequently occurring score in a distribution.', e:'Scores: 72, 85, 85, 90, 95 → Most frequent value = 85 (appears most often).'},
+      {t:'Standard Deviation', d:'Measures how much scores vary around the mean — larger SD = more spread out.', e:'A class with scores 79, 80, 81 has a small SD; a class with 50, 80, 110 has a large SD.'},
+      {t:'Normal Distribution', d:'Bell-shaped curve; ~68% within 1 SD, ~95% within 2 SDs of the mean.', e:'Heights of adults form a bell curve — most cluster near the average, fewer are very short or very tall.'},
+      {t:'Statistical Significance', d:'Result unlikely to be due to chance (p < .05 convention); does NOT mean practically important.', e:'A new drug lowers blood pressure by 3 mmHg with p < .05 — unlikely due to chance, but may not be clinically meaningful.'},
+      {t:'Effect Size', d:'The magnitude of the difference or relationship — measures practical importance.', e:'Two groups differ by 2 points on a 100-point scale: statistically significant but the practical magnitude is tiny (d = 0.1).'},
+      {t:'Signal Detection Theory', d:'The study of our ability to identify a faint stimulus amid background noise; separates sensitivity from response bias — used to study perception and decision-making.', e:'A radiologist must decide whether a faint shadow on an X-ray is a tumor or noise — their decision depends on sensitivity and willingness to say "yes."'},
+      {t:'Weber\'s Smallest Perceivable Contrast (JND)', d:'The minimum difference between two stimuli detected 50% of the time. Also called the difference threshold — governed by Weber\'s Law.', e:'You can tell the difference between 50 and 51 lbs, but not between 50 and 50.5 lbs — the JND for weight is about 1/50 of the original.'},
+    ]
+  },
+
+  // ── UNIT 1: Biological Bases of Behavior ───────────
+  u1: {
+    label:'Unit 1 — Biological Bases', tag:'Unit 1', color:'#22D3EE',
+    cards:[
+      {t:'Nature vs. Nurture', d:'The debate over whether genetics or environment shapes behavior. Today: BOTH interact.', e:'Identical twins raised apart still share many personality traits (genetics), but adoption into a stimulating home raises IQ scores (environment).'},
+      {t:'Evolutionary Perspective', d:'Uses natural selection to explain behavior tendencies that enhanced our ancestors\' survival and reproduction.', e:'Humans\' fear of snakes may have evolved because those creatures were deadly to our ancestors.'},
+      {t:'Natural Selection', d:'Inherited traits enabling organisms to survive and reproduce are passed on; others die out.', e:'Peppered moths that matched tree bark color survived better and passed that trait to offspring.'},
+      {t:'Eugenics', d:'The discredited and unethical practice of attempting to improve the human gene pool through selective reproduction.', e:'Programs that tried to control human reproduction based on perceived "fitness" were later universally condemned as pseudoscience and deeply unethical.'},
+      {t:'Behavior Genetics', d:'Studies the relative power of hereditary and environmental influences on how we act and think.', e:'Researchers find that identical twins have more similar IQs than fraternal twins, suggesting genetic influence.'},
+      {t:'Identical vs. Fraternal Sibling Comparison Research', d:'Twin study method comparing monozygotic pairs (100% shared DNA) with dizygotic pairs (~50%) to disentangle genetic vs. environmental influences.', e:'Monozygotic twins raised apart show similar levels of extraversion — suggesting a genetic basis for personality.'},
+      {t:'Identical (Monozygotic) Twins', d:'Develop from a single fertilized egg; share 100% of genes — used to study pure genetic influence.', e:'Jim Lewis and Jim Springer — same-egg siblings separated at birth — both had dogs named Toy and married women named Linda.'},
+      {t:'Fraternal (Dizygotic) Twins', d:'Develop from two separate eggs; share ~50% genes — genetically no closer than siblings.', e:'Two-egg siblings may look completely different and have different blood types, just like any two non-twin siblings.'},
+      {t:'Adoption Studies', d:'Compare children raised by non-biological caregivers to their birth parents and their new-family parents to untangle heredity from environment.', e:'Adopted children\'s IQ scores correlate more with biological parents than adoptive parents, suggesting genetic influence on intelligence.'},
+      {t:'Epigenetics', d:'Study of how environmental factors turn inherited sequences on or off without altering the DNA itself.', e:'Children of Holocaust survivors show altered stress-hormone gene expression — trauma epigenetically passed to the next generation.'},
+      {t:'Genome', d:'The complete set of hereditary instructions for building an organism.', e:'The complete human DNA sequence contains about 3 billion base pairs and roughly 20,000–25,000 genes.'},
+      {t:'Polygenic Traits', d:'Characteristics shaped by many inherited variants of small effect (intelligence, personality) — not controlled by a single inherited unit.', e:'Height and skin color are each influenced by hundreds of genes, varying on a continuum rather than in discrete categories.'},
+      {t:'Central Nervous System (CNS)', d:'Brain and spinal cord — the body\'s decision-making command center.', e:'When you touch a hot stove, the signal travels to your spinal cord and brain (CNS), which sends back the command to pull your hand away.'},
+      {t:'Peripheral Nervous System (PNS)', d:'All neural fibers outside the CNS; connects the CNS to muscles, glands, and sensory organs.', e:'The nerves in your fingertips that detect temperature and the motor nerves that move your hand are part of the PNS.'},
+      {t:'Somatic Nervous System', d:'Controls voluntary skeletal muscle movements.', e:'Intentionally raising your arm or kicking a soccer ball — these voluntary movements are under conscious neural control.'},
+      {t:'Autonomic Nervous System (ANS)', d:'Controls involuntary functions (heartbeat, digestion); includes sympathetic and parasympathetic branches.', e:'Your heart speeds up automatically when you get scared — you don\'t consciously control this.'},
+      {t:'Sympathetic NS', d:'"Fight-or-flight" — activates the body; raises heart rate, dilates pupils, slows digestion.', e:'Before a big speech, your heart races, palms sweat, and digestion slows — the arousal branch of the autonomic NS is active.'},
+      {t:'Parasympathetic NS', d:'"Rest-and-digest" — calms the body after stress; slows heart rate, promotes digestion.', e:'After the speech, your heart rate drops and your body returns to a calm, "rest-and-digest" state.'},
+      {t:'Neuron', d:'A nerve cell — the basic building block of the nervous system that transmits electrical and chemical signals.', e:'A single motor nerve cell can stretch from your spinal cord all the way down to the muscles in your foot.'},
+      {t:'Dendrites', d:'Branching extensions of a neuron that receive incoming signals from other neurons.', e:'The branchy "antennae" on a nerve cell that pick up incoming signals from neighboring cells — these are the receiving branches.'},
+      {t:'Axon', d:'The long fiber that carries action potentials away from the cell body toward other neurons or muscles.', e:'The long "wire" running from a nerve cell body that carries the electrical signal downstream to the next cell — this is the output structure.'},
+      {t:'Myelin Sheath', d:'Fatty insulation around an axon that speeds transmission. Damaged in multiple sclerosis.', e:'In multiple sclerosis, this fatty insulating layer breaks down, causing slowed neural signaling — resulting in motor and cognitive impairment.'},
+      {t:'Action Potential', d:'A brief electrical charge that travels down the axon when stimulation exceeds the threshold.', e:'Like pulling a trigger — once the threshold is crossed, the electrical charge fires completely down the axon.'},
+      {t:'All-or-Nothing Principle', d:'A neuron fires completely or not at all — like a mousetrap; stimulus intensity affects frequency, not strength.', e:'A neuron either fires or it doesn\'t — like a mousetrap. Louder sounds cause neurons to fire more frequently, not more forcefully.'},
+      {t:'Threshold', d:'The level of stimulation required to trigger a neural impulse (action potential).', e:'A whisper might not be intense enough to trigger a neural response, but a shout will — once this minimum level is crossed, the action potential fires.'},
+      {t:'Post-Action-Potential Recovery Interval', d:'Brief rest period after firing during which the neuron cannot fire again.', e:'Immediately after firing, a neuron cannot fire again — like reloading a gun before the next shot.'},
+      {t:'Synapse', d:'The junction between two neurons; neurotransmitters are released here across the synaptic gap.', e:'The microscopic gap between two neurons where serotonin or dopamine is released and picked up by the next neuron.'},
+      {t:'Neurotransmitter', d:'Chemical messenger released at the synapse that binds to receptor sites on the receiving cell.', e:'Serotonin is released at the synapse and binds to receptors on the receiving neuron, influencing mood.'},
+      {t:'Reuptake', d:'The sending cell recycles excess chemical messengers back from the synaptic gap.', e:'SSRIs block this recycling process for serotonin — so more serotonin stays in the synaptic gap, boosting mood.'},
+      {t:'Acetylcholine (ACh)', d:'Enables muscle action, memory, and learning. Low levels → Alzheimer\'s disease.', e:'Botox blocks ACh at neuromuscular junctions, causing temporary facial paralysis. Low ACh is linked to Alzheimer\'s.'},
+      {t:'Dopamine', d:'Influences reward, movement, and attention. Low → Parkinson\'s; High → Schizophrenia.', e:'Winning a game or eating a favorite food releases this neurotransmitter, activating the brain\'s reward center. Parkinson\'s results from the cells that produce it dying off.'},
+      {t:'Serotonin', d:'Regulates mood, hunger, sleep, and arousal. Low → Depression.', e:'SSRIs like Prozac increase this mood-regulating neurotransmitter\'s availability in the synapse to treat depression.'},
+      {t:'GABA', d:'Major inhibitory neurotransmitter — calms brain activity. Low → Seizures and anxiety.', e:'Alcohol enhances this inhibitory neurotransmitter\'s effects, which is why it reduces anxiety and slows reaction time.'},
+      {t:'Glutamate', d:'Major excitatory neurotransmitter; involved in memory. Excess → Seizures.', e:'Drugs that block this excitatory neurotransmitter\'s receptors (like ketamine) are being studied as fast-acting antidepressants.'},
+      {t:'Endorphins', d:'Natural opioids providing pain relief and pleasure ("runner\'s high"). Released by exercise.', e:'A long-distance runner experiences a "runner\'s high" — these natural pain-suppressing chemicals released by exercise lift mood.'},
+      {t:'Agonist', d:'A drug or chemical that increases a neurotransmitter\'s effect by mimicking or enhancing it.', e:'Morphine mimics the brain\'s natural endorphins by binding to the same receptors — a drug that activates rather than blocks them.'},
+      {t:'Antagonist', d:'A drug or chemical that blocks a neurotransmitter\'s effect.', e:'Naloxone (Narcan) blocks opioid receptors and reverses overdoses — a drug that opposes rather than activates a receptor.'},
+      {t:'Depressants', d:'Drugs that reduce neural activity and slow body functions (e.g., alcohol).', e:'Alcohol slows reaction time, slurs speech, and impairs judgment — all signs of CNS depression.'},
+      {t:'Stimulants', d:'Drugs that excite neural activity and speed up body functions (caffeine, nicotine).', e:'A person drinks coffee before an early meeting — caffeine raises heart rate, alertness, and concentration.'},
+      {t:'Hallucinogens', d:'Substances that distort perception and evoke sensory experiences without sensory input.', e:'Under the influence of these substances, users may see vivid colors and geometric patterns, or experience cross-sensory effects like "hearing" music as shapes.'},
+      {t:'Tolerance', d:'Diminishing effect of the same dose over time — requires larger doses to achieve the same effect.', e:'A coffee drinker needs three cups to feel the same alertness that one cup produced when they first started.'},
+      {t:'Addiction', d:'Compulsive drug use despite harmful consequences; driven by changes in the brain\'s reward circuitry.', e:'A person continues gambling despite losing their savings, job, and family — the reward circuitry hijacks rational decision-making.'},
+      {t:'Medulla', d:'Lowest brainstem structure; controls heartbeat and breathing — damage can be fatal.', e:'Opioid overdose can be fatal because opioids suppress this brainstem structure\'s control of breathing.'},
+      {t:'Reticular Formation', d:'Brainstem nerve network controlling arousal and alertness.', e:'Damage to this arousal-regulating brainstem network can cause a permanent coma.'},
+      {t:'Cerebellum', d:'"Little brain" — coordinates balance, smooth movement, and procedural learning.', e:'A person with damage to this hindbrain structure stumbles while walking and has difficulty catching a ball.'},
+      {t:'Thalamus', d:'The brain\'s sensory relay station — routes all senses EXCEPT smell to the appropriate cortex.', e:'Visual information from the eyes is routed through this sensory relay station to the occipital lobe for processing.'},
+      {t:'Hypothalamus', d:'Controls hunger, thirst, body temperature, and hormonal balance; links nervous and endocrine systems; contains reward center.', e:'When you are dehydrated, this small structure below the thalamus triggers thirst; it also regulates body temperature when overheated.'},
+      {t:'Hippocampus', d:'Limbic structure critical for forming new explicit (conscious) memories. Damaged → anterograde amnesia.', e:'H.M. had this memory-forming structure removed to stop seizures and afterward could not form any new long-term memories.'},
+      {t:'Amygdala', d:'Limbic structure linked to fear, rage, and emotional processing. Damaged → reduced fear response.', e:'A soldier with damage to this almond-shaped structure fails to show fear responses even in life-threatening situations.'},
+      {t:'Limbic System', d:'Brain structures below the cortex linked to emotion, memory, and drives (amygdala, hippocampus, hypothalamus).', e:'A smell (like a grandparent\'s perfume) triggers a vivid emotional memory — routed through this emotion-and-memory brain network.'},
+      {t:'Cerebral Cortex', d:'The thin outer layer covering the brain; the body\'s ultimate information-processing center.', e:'The wrinkled outer surface visible in brain images — the seat of language, reasoning, and conscious thought.'},
+      {t:'Frontal Lobe', d:'Behind the forehead; executive functions, planning, decision-making, personality, motor cortex, Broca\'s area.', e:'Phineas Gage\'s personality became impulsive and profane after an iron rod destroyed part of this anterior brain region.'},
+      {t:'Parietal Lobe', d:'Top-rear of brain; processes touch and body position (somatosensory cortex).', e:'When a doctor pokes your arm and asks where you feel it, the somatosensory cortex in this touch-processing region handles that sensation.'},
+      {t:'Occipital Lobe', d:'Back of brain; processes ALL visual information. Damage → blindness in visual field.', e:'A blow to the back of the head can cause temporary "seeing stars" — this posterior visual-processing region was momentarily disrupted.'},
+      {t:'Auditory & Language Processing Brain Region', d:'Located above the ears; interprets sounds and speech comprehension (Wernicke\'s area); face recognition in the right hemisphere.', e:'Wernicke\'s aphasia results from left temporal lobe damage — the patient speaks fluently but the words make no sense.'},
+      {t:'Motor Cortex', d:'Rear of frontal lobe; controls voluntary movements. Larger brain area = more precise control needed.', e:'Fingertips and lips take up disproportionately large areas in this movement-control region because they require precise fine control.'},
+      {t:'Somatosensory Cortex', d:'Front of parietal lobe; processes touch sensations. More sensitive body parts = more cortical space.', e:'Lips and fingertips have more of this touch-mapping region devoted to them than the back, which is why they are more sensitive to stimulation.'},
+      {t:'Left Frontal Speech Production Zone', d:'A cortical region controlling verbal output. Damage → Broca\'s aphasia — halting, effortful talking with intact comprehension.'},
+      {t:'Wernicke\'s Area', d:'Left temporal lobe; controls language COMPREHENSION. Damage → fluent but meaningless speech.'},
+      {t:'Corpus Callosum', d:'Band of axons connecting the left and right brain hemispheres; severed in split-brain patients.', e:'In split-brain patients, an image shown only to the left visual field cannot be named, but the left hand can pick out the matching object.'},
+      {t:'Neuroplasticity', d:'The brain\'s ability to rewire itself by forming new brain pathways — greatest in childhood but lifelong.', e:'After a stroke destroys the speech area, some patients gradually recover as nearby brain regions take over the function.'},
+      {t:'Neurogenesis', d:'The formation of new nerve cells — occurs in adult humans in some brain regions.', e:'Exercise promotes new nerve cell growth in the hippocampus, which may explain why aerobic activity enhances memory.'},
+      {t:'Split-Brain Research', d:'Severing corpus callosum to stop epilepsy; revealed that hemispheres can function independently.', e:'Sperry & Gazzaniga showed that severing the corpus callosum left the hemispheres unable to share information — one hand literally didn\'t know what the other was doing.'},
+      {t:'Circadian Rhythm', d:'The body\'s ~24-hour biological clock; controls sleep-wake cycle, body temperature, and alertness.', e:'Jet lag occurs when your internal biological clock is out of sync with the local light-dark cycle.'},
+      {t:'Rapid Eye Movement Stage', d:'Dreaming phase: brain is highly active, voluntary muscles are temporarily paralyzed; critical for memory consolidation and emotional regulation.', e:'During a vivid chase dream, your eyes dart beneath your eyelids; your body is paralyzed so you do not act out the dream.'},
+      {t:'Non-REM Restorative Stages (1–3)', d:'Quiet sleep phases progressing from light dozing (first phase) to deep delta-wave sleep (third phase); physically rejuvenating.', e:'In Stage 1 you might jerk awake (hypnic jerk); in Stage 3 you are in deep sleep and very hard to awaken.'},
+      {t:'Stage 2 Neural Burst Pattern', d:'Sleep spindles — brief surges of brain activity that appear in the second sleep phase; linked to memory consolidation.', e:'Sleep spindles in the second sleep phase are associated with the brain consolidating what you studied before bed.'},
+      {t:'Stage 3 Slow Brainwave Pattern', d:'Delta waves dominate the deepest sleep phase — the hardest to wake from; essential for physical recovery.', e:'Delta-wave sleep is when sleepwalking and night terrors typically occur — the brain is active but the sleeper is deeply unresponsive.'},
+      {t:'Melatonin', d:'Hormone produced by pineal gland in darkness; signals the brain that it is time to sleep.', e:'Looking at bright screens at night suppresses this sleep-onset hormone, making it harder to fall asleep.'},
+      {t:'Insomnia', d:'Chronic difficulty falling or staying asleep — most common sleep disorder.', e:'An anxious student lies awake at 2 AM ruminating about an exam, unable to fall asleep despite exhaustion.'},
+      {t:'Narcolepsy', d:'Sudden uncontrollable sleep attacks during the day; REM sleep intrudes into wakefulness.', e:'A person laughing suddenly collapses into REM sleep — called cataplexy, a hallmark feature of this sleep disorder.'},
+      {t:'Nocturnal Breathing Interruption Condition', d:'Airway repeatedly collapses during sleep, halting respiration; results in daytime fatigue, poor concentration, and cardiovascular risk.', e:'A snoring partner\'s airway repeatedly collapses for 10–30 seconds throughout the night, causing daytime exhaustion.'},
+      {t:'Sensation', d:'The process by which specialized receptors pick up and encode stimulus energy.', e:'Your ears detect sound waves; your skin detects pressure — these are raw signals before the brain interprets them.'},
+      {t:'Transduction', d:'Converting physical stimulus energy (light, sound, pressure) into neural signals the brain can process.', e:'Light waves hit the retina → photoreceptors convert them into electrical signals → your brain processes the image.'},
+      {t:'Absolute Threshold', d:'Minimum stimulus detected at least 50% of the time.', e:'You can just barely hear a tone in a quiet room 50% of the time — that is the minimum detectable level for that frequency.'},
+      {t:'Weber\'s Law', d:'The JND (just noticeable difference) is a constant proportion of the original stimulus — larger stimuli need bigger changes.'},
+      {t:'Sensory Adaptation', d:'Reduced responsiveness to a constant, unchanging stimulus over time.', e:'Jumping into a cold pool feels shocking at first, but within minutes the temperature seems normal.'},
+      {t:'Rods', d:'Retinal cells for black-and-white vision in dim light; detect peripheral motion; ~120 million per eye.', e:'In a dark movie theater, these dim-light photoreceptors detect shapes and movement, which is why colors look washed out.'},
+      {t:'Cones', d:'Retinal cells for color vision and detail; require bright light; concentrated in the fovea.', e:'You need bright light to read a colorful infographic — these color photoreceptors in the fovea detect fine detail and hue.'},
+      {t:'Trichromatic Theory', d:'Three types of hue-sensitive receptors (red, green, blue) combine to produce every visible shade.', e:'Computer monitors mix red, green, and blue pixels to produce any color you see on screen.'},
+      {t:'Opponent-Process Theory', d:'Vision encoded by ganglion cells in rival pairs (red/green, blue/yellow) — explains afterimages.', e:'Staring at a red square for 30 seconds then looking at a white wall produces a green afterimage — the channel tuned to red triggers its paired opposite.'},
+      {t:'Spinal Cord Pain Signal Modulation Theory', d:'Neural "gates" in the dorsal horn can open or close to block or amplify nociceptive input before it reaches conscious awareness.', e:'Rubbing a bumped elbow reduces discomfort because touch input "closes the gate" on nociceptive input in the dorsal horn.'},
+      {t:"Weber's Law", d:'The JND is a constant proportion of the original stimulus — larger stimuli need bigger changes to notice a difference (e.g., 1/50 for weight). Named after Ernst Weber.'},
+      {t:'Edge-and-Angle Response Neurons (Hubel & Wiesel)', d:'Feature detector cells in the visual cortex, each tuned to a specific property such as line orientation, tilt, or direction of motion; discovered by Nobel-winning researchers in 1981.', e:'Certain cells in your visual cortex respond only to horizontal lines; others only to diagonal lines — discovered in cats by Nobel-winning researchers.'},
+      {t:'Parallel Processing', d:'The brain simultaneously handles multiple aspects of a stimulus — color, motion, depth, and shape all at once.', e:'You instantly perceive the color, shape, and motion of a flying bird simultaneously — not one feature at a time.'},
+      {t:'Inattentional Blindness', d:'Failing to notice a fully visible but unexpected object because focus is directed elsewhere — demonstrated by Simons & Chabris Gorilla Experiment.', e:'Participants counting basketball passes do not notice a person in a gorilla suit walking through — the Gorilla Experiment.'},
+      {t:'Perceptual Set', d:'A mental predisposition to interpret one thing rather than another — shaped by experience, context, mood, and expectations.', e:'An X-ray technician looking for tumors will "see" one more readily than a radiologist not expecting pathology.'},
+      {t:'Perceptual Constancy', d:'Experiencing objects as stable (same color, shape, size) despite changes in illumination and the retinal image.', e:'A door looks rectangular whether it is open at an angle or closed — the brain maintains a stable object representation despite changing retinal input.'},
+      {t:'Phi Phenomenon', d:'The illusion of movement created when adjacent stationary lights flash in sequence — Gestalt psychologists\' term, the basis of motion pictures.', e:'Old-fashioned theater marquees with sequentially blinking lights appear to show moving arrows — an illusion of motion from a series of static stimuli.'},
+      {t:'Kinesthesis', d:'The sense of the position and movement of body parts — receptors in muscles, tendons, and joints.'},
+      {t:'Vestibular Sense', d:'Balance and spatial orientation system; semicircular canals in the inner ear detect head rotation and gravity.'},
+      {t:'Frequency Theory (Hearing)', d:'Pitch is determined by how rapidly the basilar membrane vibrates — best explains low-pitched sounds (below ~4,000 Hz).'},
+      {t:'Place Theory (Hearing)', d:'Different pitches activate different locations on the basilar membrane — explains high-frequency pitches (von Békésy, Nobel 1961).'},
+      {t:'Conduction Hearing Loss', d:'Caused by mechanical damage to the outer or middle ear that prevents sound waves from reaching the cochlea — often treatable.'},
+      {t:'Sensorineural Hearing Loss', d:'Caused by damage to cochlear hair cells or the auditory nerve — the most common type; often from prolonged loud noise exposure; not reversible.'},
+      {t:'Selective Attention', d:'Focusing conscious awareness on a particular stimulus while filtering out others — demonstrated by the cocktail party effect and cherry-picking tasks.'},
+      {t:'Cocktail Party Effect', d:'The ability to focus on one conversation in a noisy room while still detecting your own name in another conversation — selective attention at work.'},
+    ]
+  },
+
+  // ── UNIT 2: Cognition ──────────────────────────────
+  u2: {
+    label:'Unit 2 — Cognition', tag:'Unit 2', color:'#00b3a4',
+    cards:[
+      {t:'Perception', d:'The brain\'s process of organizing and interpreting sensory information to give it meaning.'},
+      {t:'Bottom-Up Processing', d:'Perception built from raw sensory data — data-driven, starting with the stimulus itself.'},
+      {t:'Top-Down Processing', d:'Prior knowledge, expectations, and schemas guide perception — brain fills in what it expects to see.'},
+      {t:'Schema', d:'A mental framework organizing and interpreting information; influences how we perceive new situations.', e:'A child has a "dog" mental framework: four legs, fur, barks. When she sees a cat, she applies that existing framework until she updates it.'},
+      {t:'Gestalt Principles', d:'Visual organization rules: proximity, similarity, closure, continuity, figure-ground.'},
+      {t:'Inattentional Scene Alteration Failure', d:'Failing to notice gradual or sudden changes in the visual field due to divided attentional focus.'},
+      {t:'Retinal Disparity', d:'Binocular depth cue: slight difference between images in left and right eyes creates depth perception.'},
+      {t:'Algorithm', d:'A step-by-step procedure guaranteed to find the correct solution — methodical but slow.', e:'Checking every possible combination on a 4-digit lock (0000 to 9999) uses this method — guaranteed to find the answer but slow.'},
+      {t:'Heuristic', d:'Mental shortcut for quick approximate judgments — fast but prone to errors.', e:'A doctor estimates a patient\'s age from bone density on an X-ray — a mental shortcut that is usually accurate but not guaranteed.'},
+      {t:'Availability Heuristic', d:'Judging the likelihood of events based on how easily examples come to mind.', e:'After news coverage of shark attacks, people overestimate the likelihood of being attacked by a shark.'},
+      {t:'Representativeness Heuristic', d:'Judging likelihood based on how well something matches our prototype or stereotype.', e:'Judging a quiet, orderly person who likes puzzles as a librarian rather than a truck driver — matching to a stereotype.'},
+      {t:'Mental Set', d:'The tendency to approach a problem using the same strategy that worked before.', e:'You always open stuck jar lids by twisting; a new type requires pressing a button — your old strategy blinds you to the new solution.'},
+      {t:'Functional Fixedness', d:'Inability to see an object as serving a purpose beyond its typical use.', e:'You need a screwdriver but only see a butter knife — not realizing the knife could turn the screw.'},
+      {t:'Confirmation Bias', d:'The tendency to search for and favor information that supports our existing beliefs.', e:'A flat-earther only reads articles that support flat-earth theory and dismisses contradictory evidence.'},
+      {t:'Cognitive Dissonance', d:'Mental discomfort from holding conflicting beliefs or when actions contradict beliefs; motivates change.', e:'A smoker knows smoking causes cancer but continues, telling themselves "my grandpa smoked and lived to 95" to reduce the mental conflict.'},
+      {t:'Framing Effect', d:'People respond differently to the same information depending on how it is presented.', e:'"90% survival rate" surgery sounds more appealing than "10% mortality rate" — same fact, different frame.'},
+      {t:'Explicit Memory', d:'Conscious recall: episodic (personal events) and semantic (facts, concepts).'},
+      {t:'Implicit Memory', d:'Unconscious retention of skills and procedures (procedural knowledge) — doesn\'t require conscious recall.'},
+      {t:'Working Memory', d:'An active cognitive buffer where information is held and manipulated; limited capacity (~7±2 items).', e:'While solving a math problem in your head, you hold intermediate numbers in active mental storage.'},
+      {t:'Multi-Store Model', d:'Atkinson-Shiffrin: Sensory Memory → Short-Term Memory → Long-Term Memory.'},
+      {t:'Sensory Memory', d:'Brief buffer: Iconic (visual, <1 sec) and Echoic (auditory, 3–4 sec).', e:'The brief afterimage from a camera flash is iconic storage — it lasts less than half a second before fading.'},
+      {t:'Long-Term Potentiation (LTP)', d:'Repeated synapse activation strengthens neural connections — the biological basis of memory formation.'},
+      {t:'Levels of Processing', d:'Deeper encoding = better memory. Structural (shallow) < Phonemic < Semantic (deepest).'},
+      {t:'Encoding', d:'The initial process of getting information into the memory system.', e:'Studying by making up a story using vocabulary words is a form of elaborative processing that deepens memory formation.'},
+      {t:'Mnemonic Device', d:'A memory aid using associations, acronyms, rhymes, or images to improve encoding.'},
+      {t:'Method of Loci', d:'"Memory palace" — linking items to familiar locations along a mental route.'},
+      {t:'Distributed Practice Advantage', d:'Spacing out study sessions across days or weeks produces far better long-term retention than cramming everything into one block.', e:'Studying vocabulary 30 minutes per day for 5 days beats cramming all 2.5 hours the night before.'},
+      {t:'Serial Position Effect', d:'Best recall for items at the beginning (primacy) and end (recency) of a list.', e:'You remember the first few and last few items on a grocery list but forget the middle ones.'},
+      {t:'Chunking', d:'Grouping information into meaningful units to expand effective working memory capacity.', e:'Memorizing 149217761865 is hard; splitting it into 1492, 1776, 1865 (historical dates) makes it easy.'},
+      {t:'Recall', d:'Retrieving information without cues — harder (e.g., essay questions).'},
+      {t:'Recognition', d:'Identifying previously encountered information when it is presented — easier (e.g., multiple choice).'},
+      {t:'Context-Dependent Memory', d:'Recall is better when retrieval occurs in the same environment as encoding.', e:'Divers who memorized words underwater recalled them better underwater than on land — the surrounding environment acts as a retrieval cue.'},
+      {t:'Mood-Congruent Memory', d:'We more easily recall information that matches our current emotional state.', e:'When you are anxious, you more easily recall other anxious moments — emotional state primes retrieval of similarly-toned events.'},
+      {t:'Testing Effect', d:'Active retrieval practice (self-quizzing) produces far better long-term retention than re-reading.', e:'Instead of rereading your notes, you cover them and quiz yourself — retrieval practice strengthens memory more than passive review.'},
+      {t:'Retrograde Amnesia', d:'Inability to retrieve stored information from BEFORE brain damage.', e:'A person in a car accident forgets the 30 minutes leading up to the crash but remembers everything before.'},
+      {t:'Anterograde Amnesia', d:'Inability to form NEW long-term records after brain damage (e.g., Patient H.M.).', e:'H.M. could not form new memories after his hippocampus was removed — he re-met his doctors every day with no recognition.'},
+      {t:'Forgetting Curve', d:'Ebbinghaus: ~70% of information fades within 24 hours; the rate of decline then levels off.'},
+      {t:'Proactive Interference', d:'OLD memories disrupt the learning of NEW information.', e:'Your old locker combination keeps popping into your head when you try to remember your new one.'},
+      {t:'Retroactive Interference', d:'NEW memories disrupt recall of OLD information.', e:'After learning Spanish, you start forgetting some French words you had learned before.'},
+      {t:'Misinformation Effect', d:'Post-event details distort the original memory (Loftus — leading questions change eyewitness reports).', e:'After seeing a car accident, someone asks "How fast were the cars going when they smashed?" — subjects later recall more damage than occurred.'},
+      {t:'Source Amnesia', d:'Retaining information but being unable to recall where or when you encountered it.'},
+      {t:'Constructive Memory', d:'What we recall is rebuilt each time it is retrieved — it can shift with each reintegration.'},
+      {t:'General Intelligence (g)', d:'Spearman\'s concept of a single underlying mental ability that influences all cognitive tasks.', e:'Students who excel in math tend to also excel in reading and history — Spearman argued this reflects a common "g" factor.'},
+      {t:'Multiple Intelligences (Gardner)', d:'Cognitive aptitude comes in many distinct forms: linguistic, logical-math, spatial, musical, bodily-kinesthetic, interpersonal, intrapersonal, naturalist.', e:'A child who struggles academically but excels as a musician may have high musical intelligence — one of eight proposed ability types.'},
+      {t:'IQ', d:'Intelligence Quotient; a standardized score relative to age peers, with 100 as the average and 15 as one standard deviation.'},
+      {t:'Standardization', d:'Establishing uniform procedures for administering and scoring a test; creating norms from representative sample.', e:'IQ tests are given under identical conditions to everyone to ensure fair comparison across test-takers.'},
+      {t:'Reliability', d:'A test produces consistent results across repeated administrations.', e:'A well-designed IQ test gives you nearly the same score each time you take it — it is reliable.'},
+      {t:'Validity', d:'A test measures what it claims to measure.', e:'An IQ test is valid if it actually predicts school performance, job success, and other real-world outcomes.'},
+      {t:'Flynn Effect', d:'Global IQ scores have risen over generations — attributable to environmental improvements (nutrition, education).', e:'Average IQ scores have risen about 3 points per decade worldwide — probably due to better nutrition, education, and test familiarity.'},
+      {t:'Stereotype Threat', d:'Awareness of a negative generalization about one\'s group can lower performance on relevant tasks.', e:'A Black student reminded of negative group expectations before a difficult test scores lower — worry about confirming bias impairs performance.'},
+      {t:'Growth Mindset', d:'Dweck: Belief that intelligence and abilities can be developed through effort — predicts better achievement.'},
+      {t:'Assimilation', d:'Piaget: interpreting a new experience in terms of an existing schema — fitting new info into current knowledge frameworks.', e:'A toddler calls a horse "doggie" — fitting the horse into her existing "dog" schema.'},
+      {t:'Accommodation', d:'Piaget: modifying or creating a new schema to fit a new experience that cannot be assimilated into existing ones.', e:'After being corrected, the child creates a new "horse" schema — she has accommodated the new information.'},
+      {t:'Creativity', d:'The ability to produce novel and useful ideas; involves divergent thinking, intrinsic motivation, expertise, and imaginative thinking.'},
+      {t:'Convergent Thinking', d:'Narrowing options to find a single correct answer — the cognitive approach measured by traditional IQ tests.'},
+      {t:'Divergent Thinking', d:'Generating many possible solutions by exploring multiple alternatives — associated with creativity and open-ended problem-solving.'},
+      {t:'Priming', d:'Activation of particular associations in memory — exposure to one stimulus unconsciously influences response to a later related stimulus.'},
+      {t:'State-Dependent Memory', d:'Recall is best when the person is in the same internal condition as during encoding (e.g., mood, arousal level, drug condition).', e:'A person who hid money while drunk struggles to find it when sober but locates it when drunk again.'},
+      {t:'Decay Theory', d:'Memory fades over time through disuse if not rehearsed — distinct from interference (which involves competing memories).'},
+      {t:'Encoding Failure', d:'The most common cause of forgetting: information was never deeply processed and stored in the first place.'},
+      {t:'Crystallized Intelligence', d:'Cattell: accumulated knowledge and verbal skills — tends to increase with age and experience.', e:'A retired professor still excels at trivia and vocabulary — this knowledge-based ability holds up well with age.'},
+      {t:'Fluid Intelligence', d:'Cattell: the ability to reason speedily and abstractly — tends to decline with aging, especially after age 75.', e:'Solving a novel logic puzzle you have never seen before requires this flexible reasoning ability.'},
+      {t:'Triarchic Theory (Sternberg)', d:'Three types of intelligence: Analytical (school smarts), Creative (novel situations), and Practical (street smarts/common sense).', e:'A student who aces tests (analytical), starts their own business (practical), and invents a product (creative) shows all three intelligence types in this framework.'},
+      {t:'Emotional Intelligence', d:'Salovey & Mayer: ability to perceive, understand, manage, and apply feelings and affect skillfully — predicts relationship success and leadership.'},
+      {t:'Savant Syndrome', d:'A condition where someone with limited overall mental ability has a remarkable specific talent (music, math, drawing) — challenges narrow IQ views.'},
+    ]
+  },
+
+  // ── UNIT 3: Development & Learning ─────────────────
+  u3: {
+    label:'Unit 3 — Development & Learning', tag:'Unit 3', color:'#f0A500',
+    cards:[
+      {t:'Developmental Psychology', d:'The study of how people grow, change, and stay the same across the lifespan.', e:'Researchers follow children from birth to age 18, measuring language, cognition, and social skills at each stage.'},
+      {t:'Cross-Sectional Research', d:'Comparing different age groups at the same point in time; quick but may show cohort effects.'},
+      {t:'Longitudinal Research', d:'Following the same individuals over a long period; more accurate but time-consuming.'},
+      {t:'Teratogen', d:'Any substance (alcohol, drugs, toxins) that can cause birth defects during prenatal development.', e:'Alcohol consumed during pregnancy can cause fetal alcohol syndrome — a prime example of a harmful prenatal substance.'},
+      {t:'Critical Period', d:'A specific developmental window when exposure to certain stimuli is essential for normal development.'},
+      {t:'Rooting Reflex', d:'Newborn turns head toward cheek touch and begins sucking — an innate survival mechanism.'},
+      {t:'Piaget\'s Milestone for Hidden Item Awareness', d:'Understanding that objects continue to exist even when out of sight; develops around 8 months.', e:'A 10-month-old watches a toy get hidden under a blanket and then reaches for it — she knows the toy still exists.'},
+      {t:'Conservation', d:'Understanding that quantity remains the same even when shape changes; develops in concrete operational stage.', e:'A child understands that pouring water from a short wide glass into a tall narrow glass does not change the amount of water.'},
+      {t:'Piaget\'s 4 Stages', d:'Sensorimotor (0–2), Preoperational (2–7), Concrete Operational (7–11), Formal Operational (12+).'},
+      {t:'Egocentrism', d:'Preoperational child\'s inability to see the world from another person\'s perspective.'},
+      {t:'Theory of Mind', d:'Understanding that others have thoughts, beliefs, and desires different from one\'s own.', e:'A 4-year-old understands that her friend does not know where the candy is hidden — the friend has a different belief (false-belief task).'},
+      {t:'Zone of Proximal Development (ZPD)', d:'Vygotsky: tasks a learner can do with guidance but not yet independently.', e:'A student cannot factor quadratics alone but can with the teacher\'s hints — the task is in their ZPD.'},
+      {t:'Scaffolding', d:'Temporary support provided by a more skilled person to help a learner accomplish tasks in the ZPD.', e:'A parent holds the back of a child\'s bike while they learn to balance — gradually removing support as the child improves.'},
+      {t:'Phoneme', d:'The smallest unit of sound in a language (e.g., "b" in "bat").', e:'The word "cat" has three distinct sound units: /k/, /æ/, /t/.'},
+      {t:'Morpheme', d:'The smallest unit of meaning in a language (e.g., "un-" + "happy").', e:'"Unbreakable" has three meaning units: un-, break, -able — each contributes to the overall meaning.'},
+      {t:'Telegraphic Speech', d:'Two-word sentences used by toddlers leaving out function words ("want cookie").'},
+      {t:'Overgeneralization', d:'Applying grammar rules too broadly ("I goed home") — shows the child is actively constructing language.'},
+      {t:'Attachment', d:'An emotional bond between infant and caregiver; a secure version of this bond supports healthy development.', e:'A secure toddler plays freely while her mother is present, cries briefly when she leaves, and calms quickly when she returns.'},
+      {t:'Harlow\'s Contact Comfort Experiments', d:'Infant monkeys preferred soft cloth mother over wire mother with food — physical warmth and touch drive bonding more than nourishment.'},
+      {t:'Parenting Styles', d:'Authoritarian (strict), Authoritative (warm + structured), Permissive (warm, low structure). Authoritative generally best outcomes.'},
+      {t:'Erikson\'s 8 Stages', d:'Trust vs. Mistrust → Autonomy → Initiative → Industry → Identity → Intimacy → Generativity → Integrity.'},
+      {t:'Erikson\'s Stage 5: Adolescent Self-Definition', d:'A developmental period in which teens explore different roles, values, and peer groups to forge a stable personal identity.', e:'A teenager tries on different friend groups, values, and clothing styles to figure out who they are.'},
+      {t:'Bronfenbrenner\'s Ecological Theory', d:'Development is shaped by nested societal layers: Microsystem, Mesosystem, Exosystem, Macrosystem, Chronosystem.'},
+      {t:'UCS (Unconditioned Stimulus)', d:'Something that naturally and automatically triggers a reaction without any prior learning (e.g., food causing salivation).'},
+      {t:'UCR (Unconditioned Response)', d:'The natural, automatic reaction to the UCS that requires no learning (e.g., salivating when food appears).'},
+      {t:'CS (Conditioned Stimulus)', d:'A previously neutral cue that, after repeated pairing with the UCS, comes to elicit the CR on its own.'},
+      {t:'CR (Conditioned Response)', d:'The acquired reaction elicited by the CS alone, after learning has occurred.'},
+      {t:'Extinction (Classical)', d:'The CR weakens and disappears when the CS is repeatedly presented without the UCS.'},
+      {t:'Spontaneous Recovery', d:'Resurgence of an extinguished CR after a rest period.', e:'After extinction and a rest period, the dog salivates again when it hears the bell — the CR has unexpectedly reappeared on its own.'},
+      {t:'Stimulus Generalization', d:'Responding to cues similar to the original CS.'},
+      {t:'Stimulus Discrimination', d:'Responding only to the specific CS and not to similar cues.'},
+      {t:'Counterconditioning', d:'Replacing a learned emotional response with the opposite — basis of systematic desensitization.'},
+      {t:'Positive Reinforcement', d:'ADD something desirable → behavior INCREASES (praise after studying).', e:'A dog sits → gets a treat → more likely to sit in the future.'},
+      {t:'Negative Reinforcement', d:'REMOVE something aversive → behavior INCREASES (buckling seatbelt stops the beeping). NOT punishment.', e:'Taking ibuprofen removes a headache → you are more likely to take ibuprofen next time (pain removal reinforces the behavior).'},
+      {t:'Positive Punishment', d:'ADD something aversive → behavior DECREASES (speeding ticket).', e:'A student talks in class → teacher gives detention → student talks less.'},
+      {t:'Negative Punishment', d:'REMOVE something desirable → behavior DECREASES (losing phone privileges).', e:'A teenager comes home late → parents take away their phone → teenager comes home on time.'},
+      {t:'Shaping', d:'Reinforcing successive approximations toward a desired behavior.', e:'Training a dolphin to jump: first reward approaching the hoop, then touching it, then jumping partway, then the full jump.'},
+      {t:'Variable Ratio Schedule', d:'Reinforcement after unpredictable number of responses — highest response rate, most resistant to extinction (slot machines).'},
+      {t:'Fixed Ratio Schedule', d:'Reinforcement after a set number of responses — high steady rate with brief pause after each reward.'},
+      {t:'Variable Interval Schedule', d:'Reinforcement after unpredictable amounts of time — steady moderate response rate.'},
+      {t:'Fixed Interval Schedule', d:'Reinforcement after a set time has passed — scalloped pattern; responding surges near the end of each period.'},
+      {t:'Learned Helplessness', d:'Seligman: after experiencing uncontrollable events, organisms stop trying even when control becomes possible. Linked to depression.', e:'Dogs shocked with no escape option stop trying to escape even when escape becomes possible — a model for depression.'},
+      {t:'Social Learning Theory (Bandura)', d:'Behavior is gained through observing and modeling others — no direct reinforcement needed.'},
+      {t:'Vicarious Conditioning', d:'Learning by watching someone else be reinforced or punished for a behavior.'},
+      {t:'Self-Efficacy', d:'Bandura: one\'s belief in their ability to execute behaviors to produce specific outcomes.', e:'A student who succeeded on past difficult tests believes she can handle the AP exam — strong belief in her own capability.'},
+      {t:'Bobo Doll Study', d:'Children who observed an adult hitting an inflatable toy later imitated that aggression — observational learning.'},
+      {t:'Latent Learning', d:'Tolman: knowledge acquired without reinforcement but not demonstrated until there is an incentive to do so.', e:'A student learns the campus layout just by walking around; later, when they need to find a building, they use that stored knowledge.'},
+      {t:'Insight Learning', d:'Köhler: sudden "aha!" solution to a problem without trial-and-error — cognitive understanding.'},
+      {t:'Zygote', d:'A fertilized egg — the single cell formed when sperm and egg unite, containing the full 46-chromosome genetic blueprint.'},
+      {t:'Embryo', d:'The developing human organism from 2 weeks to about 2 months after fertilization — period of rapid organ formation.'},
+      {t:'Fetus', d:'The developing organism from about 9 weeks after conception until birth — organs complete; growth and refinement continue.'},
+      {t:'Stranger Anxiety', d:'Wariness toward unfamiliar people that infants display beginning around 8 months — signals healthy bonding forming with caregivers.'},
+      {t:'Secure Attachment', d:'Ainsworth: infant uses caregiver as a trusted home base; distressed when separated, easily soothed on return — best long-term outcomes.', e:'The toddler uses mom as a "safe base" to explore — confident and trusting.'},
+      {t:'Insecure Attachment', d:'Ainsworth: anxious/avoidant (little distress, avoids parent on return) or anxious/ambivalent (clingy, not comforted on return).', e:'An anxious-ambivalent toddler clings to mom and cannot be soothed when she returns, alternating between seeking and resisting her.'},
+      {t:'Authoritarian Parenting', d:'High demands, low warmth — strict rules, punishment, little explanation. Associated with obedient but less happy, lower self-esteem children.', e:'"Because I said so." — rules without explanation; obedience over understanding.'},
+      {t:'Authoritative Parenting', d:'High demands, high warmth — explains rules, listens, firm but loving. Associated with best outcomes: competent, happy, self-reliant.', e:'Parents set a curfew, explain the reasons, and listen to the teen\'s perspective before adjusting if warranted.'},
+      {t:'Permissive Parenting', d:'Low demands, high warmth — few rules, very indulgent. Children tend to be more impulsive, with lower achievement and less self-regulation.', e:'A parent lets their child stay up until midnight on school nights because they don\'t want to seem strict.'},
+      {t:'Puberty', d:'A period of physical and hormonal development during adolescence in which the body matures into adulthood — begins earlier in girls than boys.', e:'During early adolescence, a young person experiences rapid physical growth, hormonal changes, and the onset of adult physical characteristics.'},
+      {t:'Menarche', d:"A girl's first menstrual period — a milestone of female puberty, typically occurring around age 12–13."},
+      {t:'Gender Role', d:'A set of expected behaviors, attitudes, and traits for males or females in a given culture — varies across cultures and history.'},
+      {t:'Bem\'s Sex-Typed Mental Template Theory', d:'Bem: children form cognitive blueprints (schemas) for sex-linked behaviors and use them to organize self-concept and perceptions.', e:'A 5-year-old says "boys don\'t wear pink" — she has absorbed cultural gender categories into her thinking.'},
+      {t:'Identity Achievement', d:"Marcia: the adolescent has explored alternatives and committed to an identity — the healthiest outcome. Often reached in early adulthood."},
+      {t:'Identity Moratorium', d:'Marcia: actively exploring self-concept options but not yet committed — a healthy transitional phase of active searching.'},
+      {t:'Identity Foreclosure', d:'Marcia: committed to a self-concept without exploring — typically adopts parents\' values unquestioningly, without crisis.'},
+      {t:'Identity Diffusion', d:'Marcia: neither exploring nor committed — drifting without direction; associated with the poorest adjustment outcomes.'},
+      {t:'Acquisition (Conditioning)', d:'The initial training phase in classical learning — a neutral cue gradually becomes associated with a UCS and begins eliciting a CR.'},
+      {t:'Higher-Order Conditioning', d:'An established CS is used to create an association with a new neutral stimulus — the new stimulus becomes a CS through pairing with the original CS.', e:'After a bell predicts food, a light is paired with the bell — the light alone now produces salivation.'},
+      {t:'Law of Effect (Thorndike)', d:'Responses followed by satisfying outcomes are strengthened; responses followed by discomfort are weakened — precursor to operant conditioning.', e:'A cat in a puzzle box presses a lever by accident; the door opens; the cat escapes faster each subsequent trial.'},
+      {t:'Continuous Reinforcement', d:'Every correct response is followed by a payoff — fastest acquisition but quickest extinction once payoffs stop.', e:'A vending machine gives a snack every time you insert money — easy to extinguish when it stops working.'},
+      {t:'Partial (Intermittent) Reinforcement', d:'Only some responses are followed by a payoff — slower acquisition but far more resistant to extinction than a continuous schedule.'},
+      {t:'Cognitive Map', d:'Tolman: a mental representation of the spatial layout of an environment — rats learn maze layout even without reward, showing latent learning.', e:'Tolman\'s rats navigated a maze via the shortest route even when their learned path was blocked — they had a mental map.'},
+      {t:'Observational Learning', d:'Picking up behavior by watching and imitating others — no direct experience or reinforcement needed. Bandura\'s key concept.', e:'A child watches a parent flip pancakes and then tries to flip them the same way — knowledge acquired through watching others.'},
+      {t:'Mirror Neurons', d:'Nerve cells that fire both when performing an action AND when observing someone else perform it — possible neural basis for imitation and empathy.', e:'Watching a guitarist play activates the same cells in your motor cortex as if you were actually playing.'},
+      {t:'Aversive Conditioning', d:'A behavior therapy that pairs a noxious stimulus with an unwanted behavior to reduce it (e.g., nausea-inducing drug + alcohol).'},
+    ]
+  },
+
+  // ── UNIT 4: Social Psychology & Personality ────────
+  u4: {
+    label:'Unit 4 — Social Psychology & Personality', tag:'Unit 4', color:'#e0513a',
+    cards:[
+      {t:'Fundamental Attribution Error (FAE)', d:'Overestimating dispositional (character) causes and underestimating situational causes of OTHERS\' behavior.'},
+      {t:'Actor-Observer Bias', d:'Attributing OWN behavior to the situation, but attributing others\' behavior to their character.', e:'When you slip on ice, you blame the ice (external); when you see someone else slip, you think they are clumsy (internal).'},
+      {t:'Self-Serving Bias', d:'Attributing successes to our own skill (internal) and failures to external factors — protects our esteem.', e:'You passed the test because you\'re smart; you failed because the teacher writes bad questions.'},
+      {t:'Locus of Control', d:'Internal (I determine outcomes) vs. External (luck or others determine outcomes).', e:'Internal: "I failed because I did not study enough." External: "The test was unfair and I had bad luck."'},
+      {t:'Mere Exposure Effect', d:'We tend to like things more the more we are exposed to them.', e:'Songs that play repeatedly on the radio become more liked over time — familiarity alone increases preference.'},
+      {t:'Self-Fulfilling Prophecy', d:'A belief that becomes true because people act in ways that confirm it — a repeating loop of prediction and action.'},
+      {t:'Stereotype', d:'A generalized belief about a group that is applied to all its members.'},
+      {t:'Prejudice', d:'An unjustified negative attitude toward a group or its members.', e:'Assuming a woman applying for a tech job is less qualified than a man before reviewing her resume.'},
+      {t:'Discrimination', d:'Unjustified negative behavior toward a group or its members.', e:'A landlord refuses to rent to someone because of their race despite their good financial record.'},
+      {t:'Just-World Phenomenon', d:'The belief that people get what they deserve — leads to blaming victims.'},
+      {t:'In-Group Bias', d:'Favoring members of one\'s own social circle over members of outside circles.', e:'Sports fans perceive their own team\'s fouls as accidental but the opposing team\'s as deliberate.'},
+      {t:'Implicit Association Test (IAT)', d:'Measures unconscious attitudes toward groups by measuring reaction times.'},
+      {t:'Belief Perseverance', d:'Clinging to an idea even after it has been clearly refuted by evidence.'},
+      {t:'Conformity', d:'Adjusting behavior or thinking to match group standards — demonstrated by Asch\'s line studies.', e:'Asch\'s line study: participants chose the obviously wrong line length to match the group\'s incorrect answer.'},
+      {t:'Obedience', d:'Following direct orders from an authority figure — Milgram\'s shock experiment showed ~65% agreement rate.', e:'In Milgram\'s experiment, 65% of participants delivered what they believed to be maximum-voltage shocks when an authority figure ordered them to.'},
+      {t:'Groupthink', d:'Pressure for conformity in cohesive teams leads to poor collective decisions by suppressing dissent.', e:'NASA engineers who privately doubted the Challenger launch safety stayed silent in the group meeting — pressure for consensus overrode honest dissent.'},
+      {t:'Bystander Effect', d:'As number of witnesses increases, the likelihood any one individual will help DECREASES.', e:'Kitty Genovese was attacked while dozens of neighbors heard but did not call police — each assumed someone else would help.'},
+      {t:'Diffusion of Responsibility', d:'Each person feels less responsible for helping when others are present.', e:'In a crowded elevator, no one helps someone who drops their groceries — everyone assumes someone else will act.'},
+      {t:'Deindividuation', d:'Loss of identity awareness and individual accountability in crowds or anonymity — increases antisocial behavior.', e:'At an anonymous protest, an otherwise peaceful person starts vandalizing — the crowd reduces individual accountability.'},
+      {t:'Social Loafing', d:'Individuals exert reduced exertion when working collectively than when working alone.', e:'A student does less work on a group project because they know others will compensate — reduced effort in a group.'},
+      {t:'Social Facilitation', d:'Improved performance on simple/familiar tasks when others are watching; impaired on complex tasks.', e:'A cyclist rides faster in a race than alone because the presence of others enhances performance on a well-practiced task.'},
+      {t:'Id', d:'Freud: the unconscious reservoir of primitive drives seeking immediate pleasure (pleasure principle).', e:'An infant\'s screaming for milk the moment they\'re hungry — immediate gratification of biological need, driven by this primal force.'},
+      {t:'Ego', d:'Freud: the rational, conscious mediator that balances primal drives (id) and moral constraints; operates on the reality principle.', e:'You want to eat all the Halloween candy at once (id) but the reality-based mental layer intervenes: "Two pieces now, save the rest."'},
+      {t:'Superego', d:'Freud: the internalized moral conscience representing societal standards and ideals.', e:'You return the extra change a cashier accidentally gave you — your internalized moral conscience overrides the temptation.'},
+      {t:'Defense Mechanisms', d:'Unconscious tactics the ego uses to reduce anxiety: repression, denial, projection, rationalization, displacement, sublimation.', e:'A student who fails an exam says the test was "totally unfair and poorly written" — rationalization as an unconscious protective strategy.'},
+      {t:'Projection', d:'Freudian defense: displacing one\'s own unacceptable feelings onto others.', e:'A person who secretly resents their friend accuses that friend of being jealous of them.'},
+      {t:'Rationalization', d:'Freudian defense: fabricating plausible explanations to conceal true motives.', e:'"I deserved that second slice of cake; I worked hard today" — justifying the indulgence after the fact.'},
+      {t:'Repression', d:'Freudian defense: forcing anxiety-provoking thoughts into the unconscious.', e:'A trauma survivor has no conscious memory of the abuse — it has been repressed from awareness.'},
+      {t:'Sublimation', d:'Freudian defense: redirecting unacceptable impulses into socially acceptable activities.', e:'A person with aggressive impulses channels them into boxing — a socially acceptable outlet.'},
+      {t:'Unconditional Positive Regard', d:'Rogers: accepting and valuing a person completely without conditions — key to humanistic therapy.', e:'A therapist listens without judgment to a client who has done something shameful — a core condition for growth in person-centered therapy.'},
+      {t:'Self-Actualization', d:'Maslow\'s highest need — fulfilling one\'s full potential; the goal of humanistic therapy.', e:'An artist who gives up a lucrative career to pursue their passion fully is striving to fulfill their highest human potential.'},
+      {t:'Big Five (OCEAN)', d:'Openness, Conscientiousness, Extraversion, Agreeableness, Neuroticism — the dominant scientific personality model.'},
+      {t:'Openness', d:'Big Five trait: imaginative, curious, receptive to new experiences vs. conventional.', e:'A person who loves trying exotic cuisines, visiting museums, and exploring new ideas scores high on this Big Five trait.'},
+      {t:'Conscientiousness', d:'Big Five trait: organized, disciplined, reliable — best predictor of job success and academic achievement.', e:'Always arriving early, keeping a detailed planner, and completing tasks ahead of deadlines reflects a high score on this Big Five trait.'},
+      {t:'Extraversion', d:'Big Five trait: outgoing, talkative, energized by social interaction vs. introverted.', e:'An extrovert feels energized after a party and seeks out social events on weekends.'},
+      {t:'Agreeableness', d:'Big Five trait: cooperative, trusting, warm vs. antagonistic and suspicious.', e:'A nurse who is warm, compassionate, and cooperative with colleagues scores high on this Big Five trait.'},
+      {t:'Neuroticism', d:'Big Five trait: tense, emotionally reactive, prone to mood swings vs. emotionally stable.', e:'A person who frequently feels anxious, irritable, and emotionally volatile scores high on this Big Five trait.'},
+      {t:'Reciprocal Determinism', d:'Bandura: behavior, personal factors (thoughts, beliefs), and environment mutually influence each other.'},
+      {t:'Hull\'s Homeostatic Motivation Model', d:'Biological needs create drives; behavior aims to reduce those drives and restore internal balance.'},
+      {t:'Yerkes-Dodson Law', d:'Performance is best at moderate arousal; too little = boredom; too much = anxiety impairs performance.'},
+      {t:'Intrinsic Motivation', d:'Engaging in an activity because it is naturally interesting or satisfying.'},
+      {t:'Extrinsic Motivation', d:'Engaging in an activity to obtain outside rewards (grades, money, praise).'},
+      {t:'Overjustification Effect', d:'External rewards for an intrinsically interesting activity can decrease intrinsic motivation.'},
+      {t:'Hierarchy of Needs (Maslow)', d:'Physiological → Safety → Love/Belonging → Esteem → Self-Actualization. Lower levels must be satisfied first.'},
+      {t:'James-Lange Theory', d:'We experience emotion because we notice our physiological response. "I feel afraid because I am trembling."'},
+      {t:'Cannon-Bard Theory', d:'Physiological arousal and the subjective feeling of emotion occur simultaneously and independently.'},
+      {t:'Two-Factor Theory (Schachter-Singer)', d:'Emotion = physiological arousal + a cognitive label. Same arousal can produce different emotions based on context.'},
+      {t:'Facial-Feedback Hypothesis', d:'Our expressive features can influence the feelings we actually experience.'},
+      {t:'Display Rules', d:'Cultural norms governing when and how feelings are shown — vary widely across cultures.'},
+      {t:'Ekman\'s 6 Universal Emotions', d:'Anger, disgust, fear, happiness, sadness, surprise — recognized across all cultures.'},
+      {t:'Altruism', d:'Unselfish regard for the welfare of others — helping without expectation of personal gain; increases with empathy and similarity.', e:'A stranger dives into a frozen river to save a drowning child at personal risk — with no expectation of reward.'},
+      {t:'Aggression', d:'Any physical or verbal behavior intended to harm — influenced by biological factors, frustration, social learning, and media exposure.'},
+      {t:'Frustration-Aggression Principle', d:'The obstructing of a goal creates anger that may trigger antagonistic behavior, especially when the goal is thwarted by an external agent.'},
+      {t:'Foot-in-the-Door Technique', d:'Compliance strategy: securing a small initial commitment makes people more likely to agree to a larger request later — consistency pressure.', e:'After agreeing to sign a petition, you are more likely to later agree to volunteer time for the same cause.'},
+      {t:'Door-in-the-Face Technique', d:'Compliance strategy: starting with a large request (refused) makes a smaller follow-up request seem more reasonable by contrast.', e:'A charity asks for a $500 donation; you decline; they ask for $20 — and you agree because $20 seems reasonable.'},
+      {t:'Central Route Persuasion', d:'Viewpoint shift through careful analysis of arguments and evidence — produces lasting opinion change when motivation and ability are high.', e:'A voter reads a candidate\'s detailed policy proposals and changes their mind based on the logical arguments.'},
+      {t:'Peripheral Route Persuasion', d:'Viewpoint shift through surface cues (attractiveness, credibility signals, emotional appeals) — superficial and short-lived.', e:'A consumer buys the shampoo endorsed by a celebrity rather than the one with better ingredients.'},
+      {t:'Normative Social Influence', d:'Conforming to group behavior to gain approval or avoid rejection — driven by acceptance needs, not belief in the group.', e:'Everyone stands up when the performer enters the theater, so you stand up too — even if you are unsure why.'},
+      {t:'Informational Social Influence', d:'Conforming because we trust others as a reliable source of knowledge in ambiguous situations — we genuinely believe they know better.', e:'You are new in town and everyone at the restaurant is eating with chopsticks, so you assume that is the correct utensil.'},
+      {t:'Social Contagion', d:'The spread of moods, behaviors, and ideas through a group — laughter, panic, and fashion can be viral.', e:'During a stressful event, one person\'s panic spreads rapidly through a crowd, causing others to flee even without direct knowledge of the threat.'},
+      {t:'Spotlight Effect', d:'The tendency to overestimate how much others notice and evaluate our appearance, mistakes, and behavior.', e:'You get a haircut and feel everyone is staring at it all day — in reality, most people have not noticed.'},
+      {t:'Collective Unconscious (Jung)', d:"Jung's proposed shared reservoir of inherited memories and images common to all humanity — source of universal symbols (archetypes)."},
+      {t:'Archetypes', d:'Jung: universal symbolic images and themes in the collective unconscious — the hero, shadow, anima/animus, and mother figure.', e:'The "wise old man" archetype appears in Gandalf, Dumbledore, and Yoda — universally recognized symbols from the collective unconscious.'},
+      {t:'MMPI (Minnesota Multiphasic Personality Inventory)', d:'The most widely used standardized self-report measure — empirically keyed scales assess traits and psychopathology across clinical populations.', e:'A clinical psychologist uses this standardized measure to assess whether a client shows signs of depression, paranoia, or antisocial tendencies.'},
+      {t:'Rorschach Projective Personality Assessment', d:'An ambiguous inkblot technique where free responses are interpreted to reveal unconscious drives and conflicts; criticized for low reliability and validity.', e:'A patient sees "a bat" in every inkblot — a clinician might interpret this as a preoccupation with darkness or threat.'},
+      {t:'Murray\'s Picture Story Projective Assessment (TAT)', d:'An interpretive measurement approach: participants narrate stories about ambiguous scenes or illustrations — recurring themes reveal unconscious motives, conflicts, and needs.', e:'A client tells a story about a lonely man rejected by everyone — this may reveal unconscious feelings of social rejection.'},
+      {t:'Arousal Theory', d:'People seek an optimal level of stimulation — too little causes boredom; too much causes anxiety. Yerkes-Dodson law describes the curve.', e:'Skydivers seek the thrill of jumping because they have a higher optimal stimulation level than most people.'},
+      {t:'External Pull Motivation Theory', d:'Incentive model: environmental rewards and goals attract behavior — we act because of anticipated outcomes, not solely because of internal needs.', e:'A student who does not enjoy studying still does it because they want the college scholarship — an outside incentive drives behavior.'},
+      {t:'Set Point (Hunger)', d:'The body weight the body actively defends — regulated by fat cell signaling, metabolic rate, and appetite hormones like leptin and ghrelin.', e:'After dieting, weight often returns to where it was — the body\'s biological target drives metabolism and appetite to restore its preferred weight.'},
+      {t:'Binge-Eating Disorder', d:'Recurrent episodes of consuming large amounts of food rapidly without compensatory behaviors — the most common condition of its kind; associated with obesity and depression.', e:'A person eats an entire large pizza and two bags of chips in one sitting in secret, then feels intense shame — but no purging.'},
+      {t:'Cognitive Appraisal (Lazarus)', d:'Emotion depends on how we consciously evaluate a situation — whether we judge it as a threat, loss, or challenge determines the emotional reaction.', e:'Two people in the same turbulent flight — one panics (threat evaluation) and one feels excited (challenge evaluation) — same event, different emotions.'},
+      {t:'Polygraph', d:'A lie-detector measuring physiological arousal (heart rate, blood pressure, breathing, perspiration) — considered unreliable; cannot distinguish arousal types.', e:'A suspect shows elevated heart rate when asked about the crime — but an innocent nervous person could show the same response.'},
+    ]
+  },
+
+  // ── UNIT 5: Mental & Physical Health ───────────────
+  u5: {
+    label:'Unit 5 — Mental & Physical Health', tag:'Unit 5', color:'#3daa6e',
+    cards:[
+      {t:'Health Psychology', d:'The study of how biological, mental, and social factors affect wellness and illness.', e:'A psychologist in this field studies why people with strong social support recover faster from surgery.'},
+      {t:'General Adaptation Syndrome (GAS)', d:'Selye\'s 3-stage stress response: Alarm → Resistance → Exhaustion.', e:'An overworked nurse enters Alarm when a crisis hits, sustains high stress in Resistance for months, then collapses with illness (Exhaustion).'},
+      {t:'Fight-Flight-Freeze Response', d:'Immediate physiological activation (sympathetic NS) when facing perceived threat.', e:'A deer in headlights becomes immobile, a rabbit bolts away, a cornered cat hisses and swipes — three survival reactions to threat.'},
+      {t:'Eustress', d:'Positive, motivating pressure (e.g., excitement before a competition) — can enhance performance.', e:'An athlete\'s pre-game nervousness sharpens their focus and improves performance — beneficial stress that energizes rather than harms.'},
+      {t:'Problem-Focused Coping', d:'Directly addressing the stressor to solve or change it.', e:'A student stressed about failing makes a study schedule, gets a tutor, and drops one activity to free up time.'},
+      {t:'Palliative Stress Response Strategy', d:'Coping approach focused on managing the emotional toll of a situation that cannot be directly altered.', e:'A terminally ill patient cannot cure the disease but finds meaning through journaling and connecting with loved ones.'},
+      {t:'Adverse Childhood Experiences (ACEs)', d:'Traumatic early-life events with long-lasting effects on physical and mental health outcomes.', e:'A child who experienced abuse, neglect, and household substance abuse has a higher ACE score and elevated risk of heart disease as an adult.'},
+      {t:'Psychoneuroimmunology', d:'The study of how mental, brain-based, and bodily defense processes interact.', e:'Students get sick more often during finals week — chronic stress suppresses the immune system.'},
+      {t:'Positive Psychology', d:'Seligman\'s approach: scientific study of what allows people to flourish — strengths, resilience, well-being.', e:'Instead of just treating depression, Seligman\'s PERMA model focuses on flourishing: emotion, engagement, relationships, meaning, and accomplishment.'},
+      {t:'Resilience', d:'The ability to rebound from adversity, trauma, tragedy, or significant hardship.', e:'A child raised in poverty who becomes a successful professional through determination and support systems exemplifies the ability to bounce back from hardship.'},
+      {t:'Posttraumatic Growth', d:'Beneficial personal transformation following struggle with highly challenging life circumstances.', e:'A cancer survivor says the illness gave them a new sense of purpose, deeper relationships, and gratitude for life.'},
+      {t:'Gratitude', d:'Actively acknowledging the value of what one has — related interventions consistently increase well-being in research.', e:'Writing down three things you are thankful for each night increases well-being in controlled studies.'},
+      {t:'DSM-5-TR', d:'American Psychiatric Association\'s manual for classifying mental disorders — the gold standard clinical reference.', e:'A clinician uses this diagnostic manual to confirm that a client\'s pattern of symptoms meets criteria for Major Depressive Disorder.'},
+      {t:'Biopsychosocial Model', d:'Mental disorders arise from an interplay of bodily, cognitive, and cultural factors.', e:'Depression results from low serotonin (biological), negative thinking (psychological), and poverty/isolation (social) — all three must be addressed.'},
+      {t:'Vulnerability-Trigger Disorder Framework', d:'Genetic predisposition combined with environmental stressors together produce psychological conditions — neither factor alone is sufficient.', e:'A person with a genetic risk for schizophrenia may never develop it unless they experience severe chronic stress.'},
+      {t:'3 Criteria for Abnormality', d:'Dysfunction (impairs daily life), Distress (subjective suffering), Deviance (culturally unusual).', e:'A man washes his hands 200 times a day (deviance), cannot leave his house (dysfunction), and is in constant distress — meets all three standards for diagnosing a disorder.'},
+      {t:'ADHD', d:'A neurodevelopmental condition marked by persistent difficulty sustaining focus and/or excessive restlessness and impulsivity that impairs daily functioning.', e:'A student cannot sit still during lectures, loses their assignments repeatedly, and acts impulsively — hallmark features of this disorder.'},
+      {t:'ASD — Neurodevelopmental Communication Condition', d:'A lifelong developmental pattern marked by challenges in social interaction, atypical sensory responses, and restricted or repetitive behaviors.', e:'A child avoids eye contact, insists on the same daily routine, and has intense interest in train schedules but struggles with conversation.'},
+      {t:'Schizophrenia', d:'Positive symptoms (delusions, hallucinations, disorganized thought) + Negative symptoms (flat affect, social withdrawal).', e:'A young man believes he is being monitored by aliens (delusion) and hears their voices giving commands (hallucination) — positive symptoms.'},
+      {t:'Positive Symptoms (Schizophrenia)', d:'Experiences that are present but shouldn\'t be: delusions, hallucinations, disorganized thinking.', e:'Hearing voices that command you to act, or believing you are Napoleon — things present that should not be there.'},
+      {t:'Negative Symptoms (Schizophrenia)', d:'Normal functions that are absent but should be present: flat affect, poverty of speech, withdrawal.', e:'A patient sits motionless for hours, speaks in monotone, and shows no facial expression — a deficit cluster typical of this psychotic disorder.'},
+      {t:'Dopamine Hypothesis', d:'Excess activity of a key reward-pathway neurotransmitter is linked to the positive symptoms of schizophrenia.', e:'Drugs that block this neurotransmitter\'s receptors (antipsychotics) reduce hallucinations and delusions in schizophrenia.'},
+      {t:'Major Depressive Disorder', d:'5+ characteristic symptoms for 2+ weeks: persistent low mood, loss of interest, fatigue, hopelessness, thoughts of death.', e:'For six weeks, a woman sleeps 12 hours a day, loses interest in hobbies, and repeatedly thinks life is not worth living.'},
+      {t:'Bipolar Disorder', d:'Cycling between manic episodes (elevated mood, impulsivity) and depressive episodes.', e:'A man spends his life savings in 3 days on a business idea while barely sleeping (mania), then crashes into weeks of crippling depression.'},
+      {t:'Anhedonia', d:'Inability to feel enjoyment or joy — a core feature of major depression.', e:'A once-passionate guitarist finds no joy in playing music during a depressive episode.'},
+      {t:'Generalized Anxiety Disorder (GAD)', d:'Chronic, unfocused excessive apprehension lasting 6+ months about multiple areas of life.', e:'A student worries excessively about grades, family health, finances, and friendships — constant, unfocused worry persisting for over a year.'},
+      {t:'Panic Disorder', d:'Recurrent unexpected surges of overwhelming dread + persistent concern about future episodes.', e:'A woman suddenly feels her heart racing, cannot breathe, and is convinced she is dying — an acute terror episode; she lives in dread of the next one.'},
+      {t:'Social Anxiety Disorder', d:'Marked dread of interpersonal or performance situations where one might be scrutinized or embarrassed.', e:'A student refuses to raise their hand in class or eat in the cafeteria for fear of embarrassing themselves in front of peers.'},
+      {t:'Specific Phobia', d:'Intense, irrational dread of a particular object or situation that is out of proportion to actual danger.', e:'A person who was bitten by a dog as a child now breaks into a cold sweat whenever they hear a dog bark.'},
+      {t:'OCD', d:'Recurring intrusive thoughts generate distress → ritual-like acts temporarily ease that distress → the cycle perpetuates itself.', e:'A student must tap the doorknob 7 times before entering a room — if interrupted, she must start over to prevent a feared irrational catastrophe.'},
+      {t:'PTSD', d:'Flashbacks, nightmares, hyperarousal, and avoidance behaviors that emerge following an overwhelming frightening event.', e:'A combat veteran dives under a table when a car backfires, has recurring nightmares about combat, and avoids crowded spaces.'},
+      {t:'Anorexia Nervosa', d:'Severely restricted eating, intense fear of gaining weight, distorted body image. Highest mortality rate of any psychological disorder.', e:'A 90-lb teenage girl refuses to eat more than 400 calories a day and still sees herself as "fat" in the mirror.'},
+      {t:'Bulimia Nervosa', d:'Binge eating followed by compensatory behaviors (purging, fasting, excessive exercise).', e:'A college student eats an entire box of cereal, three sandwiches, and a carton of ice cream in one sitting, then forces herself to vomit.'},
+      {t:'Antisocial Personality Disorder', d:'Pervasive pattern of disregard for rights of others, deceit, impulsivity — no remorse.', e:'A con artist swindles elderly people out of their savings and feels no guilt — he sees them as "marks," not victims.'},
+      {t:'Borderline Personality Disorder', d:'Instability in relationships, self-image, emotions, and marked impulsivity.', e:'A young woman swings from idealizing her therapist to devaluing them ("I hate you") within the same week.'},
+      {t:'Systematic Desensitization', d:'Behavioral therapy for excessive fears: construct an anxiety hierarchy, then pair each level with a calming response (counterconditioning).', e:'A person with a spider phobia first learns relaxation, then imagines a distant spider, then views photos, then a spider in a jar — paired with relaxation.'},
+      {t:'CBT (Cognitive-Behavioral Therapy)', d:'A structured approach that combines reshaping thought patterns with action-based practice — gold standard for mood and worry-based conditions.', e:'A depressed patient identifies the thought "I am worthless" and examines evidence for and against it, then creates a more balanced belief.'},
+      {t:'DBT (Dialectical Behavior Therapy)', d:'CBT variant for borderline PD; balances acceptance and change through mindfulness and skills training.', e:'A patient with BPD learns mindfulness and emotional regulation skills to better manage intense emotions and impulsive reactions.'},
+      {t:'Person-Centered Therapy (Rogers)', d:'Humanistic approach: unconditional positive regard, empathy, and active listening to facilitate growth.', e:'A therapist reflects, "It sounds like you feel completely unheard at home," without judgment or advice — creating a safe space.'},
+      {t:'Free Association', d:'Freudian technique: verbalize any spontaneous thought or image to uncover unconscious material.', e:'The analyst says "mother" and the patient immediately says "guilt" — the therapist explores this uncensored verbal link.'},
+      {t:'Cognitive Triad (Beck)', d:'Negative views of SELF, WORLD, and FUTURE — a constellation of pessimistic perspectives linked to depression.', e:'A depressed patient thinks: "I am a failure" (self), "Nothing ever works out" (world), "Things will never get better" (future).'},
+      {t:'SSRIs', d:'A class of antidepressants that prevent a mood-regulating neurotransmitter from being reabsorbed at the synapse, boosting its availability. Take 2–4 weeks to reach full effect.', e:'Fluoxetine (Prozac) blocks serotonin reuptake; patients often feel better after 2–4 weeks of daily use.'},
+      {t:'Antipsychotics', d:'Dopamine antagonists reducing positive symptoms of schizophrenia. Risk: tardive dyskinesia with long-term use.', e:'Haloperidol blocks dopamine receptors — it reduces hallucinations in schizophrenia but risks tardive dyskinesia with long-term use.'},
+      {t:'Lithium', d:'Mood stabilizer for bipolar disorder; narrows mood swings. Requires careful monitoring due to narrow therapeutic window.', e:'A patient with bipolar disorder takes this mood-stabilizing mineral daily to prevent both manic highs and depressive lows — blood levels must be monitored carefully.'},
+      {t:'ECT (Electroconvulsive Therapy)', d:'Induced neural convulsions under anesthesia — highly effective for severe, drug-resistant persistent low mood.', e:'A patient with severe depression who did not respond to four antidepressants receives ECT and shows dramatic improvement within weeks.'},
+      {t:'TMS (Transcranial Magnetic Stimulation)', d:'A non-invasive brain procedure using pulsed energy fields to modulate cortical activity — fewer side effects than ECT; used for treatment-resistant depression.', e:'A depressed patient receives daily non-invasive brain sessions — pulsed energy targets the prefrontal cortex without ECT\'s memory side effects.'},
+      {t:'Point-Exchange Behavioral Reward System', d:'An operant therapy technique: tokens earned for target actions that can later be traded in for preferred items or freedoms.', e:'A psychiatric ward gives patients tokens for making their beds and attending therapy; tokens can be redeemed for TV time or snacks.'},
+      {t:'Confidentiality', d:'Therapists keep client information private — except when there is danger of harm to self or others.', e:'A therapist does not share client information with the employer — but this ethical duty yields when the client reveals a plan to harm their roommate.'},
+      {t:'Nonmaleficence', d:'APA ethical principle: "do no harm" — therapists must avoid actions that could harm clients.', e:'A therapist avoids dual relationships (such as dating a client) because this could harm the client.'},
+      {t:'Type A / Type B Behavior', d:'Pattern A: competitive, impatient, hostile — higher risk of coronary heart disease. Pattern B: relaxed, easygoing, less cardiovascular risk.', e:'An impatient executive becomes furious in traffic and works 80-hour weeks; a relaxed teacher takes a leisurely lunch and rarely raises their voice — contrasting personality styles.'},
+      {t:'Psychosomatic', d:'Physical symptoms caused or worsened by mental and emotional factors such as stress — the illness is real, not imaginary.', e:'A student gets severe headaches every Monday before a difficult class — stress is triggering a real physical symptom.'},
+      {t:'Coronary Heart Disease', d:'The leading cause of death in the US; stress, Type A hostility, and poor health behaviors are significant psychological contributors.', e:'A hostile, high-stress businessman suffers a myocardial infarction at 52 — chronic anger and pressure take a physical toll on the cardiovascular system.'},
+      {t:'Aerobic Exercise', d:'Sustained physical activity that elevates heart rate — research-supported antidepressant and stress reducer; improves mood and cognition.', e:'Running for 30 minutes three times a week has been shown to reduce depression symptoms comparably to antidepressant medication.'},
+      {t:'Mindfulness Meditation', d:'Directing full, accepting attention to present-moment experience — consistently reduces stress, low mood, and chronic pain.', e:'An app guides users to focus on breathing for 10 minutes — regular practice reduces cortisol levels and anxiety in controlled studies.'},
+      {t:'Flow (Csikszentmihalyi)', d:'A state of total absorption in a challenging but manageable task — time distorts, intrinsic motivation peaks, and self-consciousness disappears.', e:'A programmer so absorbed in debugging code that she looks up and three hours have passed without noticing.'},
+      {t:'Rosenhan Study', d:'"On Being Sane in Insane Places" (1973): pseudopatients admitted to hospitals; staff failed to detect sanity — revealed dangers of diagnostic labeling.', e:'Healthy pseudopatients admitted to psychiatric hospitals had their behaviors (like note-taking) interpreted as symptoms — staff never detected they were sane.'},
+      {t:'Diagnostic Labeling', d:'Assigning a diagnosis can create stigma, distort perception (seeing symptoms that confirm the classification), but also enables treatment and research.', e:'Once diagnosed with schizophrenia, a patient\'s laughter is noted as \'inappropriate affect\' — the label filters how clinicians interpret everything.'},
+      {t:'Dissociative Identity Disorder (DID)', d:'Two or more distinct personality states that alternately control behavior — formerly called multiple personality condition; linked to severe childhood trauma.', e:'A client switches between a timid child-like state and an angry adult state during therapy, with no memory of what the other "alter" said.'},
+      {t:'Dissociative Amnesia', d:'Sudden loss of access to important personal history — typically following a distressing event; not due to organic brain damage.', e:'A soldier returns from combat with no memory of a traumatic firefight — the memory is blocked without any brain injury.'},
+      {t:'Medically Unexplained Physical Distress Condition', d:'One or more bodily complaints causing significant impairment but lacking a sufficient clinical explanation — formerly called somatoform disorder.', e:'A patient visits multiple specialists for chest pain and fatigue; all tests return normal — but the suffering and functional impairment are very real.'},
+      {t:'Narcissistic Personality Disorder', d:'Cluster B: inflated self-importance, need for admiration, lack of empathy, and exploitative relationships.', e:'A CEO demands constant admiration, exaggerates achievements, and exploits employees without empathy — a Cluster B character pattern.'},
+      {t:'Exposure Therapy', d:'A behavioral technique that gradually confronts clients with feared objects or situations until distress extinguishes — gold standard for excessive fears and PTSD.', e:'A veteran with PTSD is gradually exposed to combat sounds in a controlled setting until the anxiety response diminishes.'},
+      {t:'EMDR (Eye Movement Desensitization & Reprocessing)', d:'Therapist guides bilateral sensory stimulation (typically rhythmic ocular tracking) while the client revisits traumatic memories — reduces emotional reactivity; growing evidence base for PTSD.', e:'A therapist moves a finger back and forth while the trauma survivor recalls a car accident — reported to reduce the emotional charge of the memory.'},
+      {t:'Psychodynamic Therapy', d:'Modern descendant of classical analytic treatment — shorter and more focused; explores how unconscious processes and past relationships shape current problems.', e:'A therapist helps a client see how their pattern of picking unavailable partners mirrors their relationship with a cold, distant parent.'},
+      {t:'Transference', d:'In psychoanalytic therapy, the client displaces emotions felt toward past figures (parents) onto the therapist — examined to reveal unconscious conflicts.', e:'A client begins treating their therapist with the same resentment they felt toward an abusive father — examined as therapeutic material.'},
+      {t:'Resistance', d:'In psychoanalysis, unconscious blocking of anxiety-provoking material from reaching awareness — seen as a defense against insight.', e:'A client suddenly "forgets" appointments whenever sessions move toward a painful childhood topic.'},
+      {t:'Active Listening', d:"Rogers' technique of empathically reflecting feelings back without judgment — creates unconditional positive regard and conditions for growth."},
+      {t:'Antidepressants', d:'Medications for persistent low mood: SSRIs block serotonin reabsorption; SNRIs block serotonin + norepinephrine; take 2–4 weeks for full effect.', e:'A patient with depression takes an SSRI for 6 weeks and notices improved mood, energy, and motivation as the drug reaches therapeutic levels.'},
+      {t:'Benzodiazepines', d:'Fast-acting calming agents (Xanax, Valium) that enhance GABA — effective quickly but risk dependence and withdrawal; used short-term.', e:'A patient with severe panic disorder takes Xanax as needed — it works quickly, but daily use leads to tolerance and dependency.'},
+      {t:'Tardive Dyskinesia', d:'Involuntary repetitive movements (especially of face/tongue) — serious side effect of long-term conventional antipsychotic use.', e:'After years of conventional antipsychotic use, a patient develops involuntary lip-smacking and tongue rolling.'},
+      {t:'Deinstitutionalization', d:'1960s–70s shift from large psychiatric hospitals to community care — driven by new drugs and civil rights concerns; increased homelessness as unintended consequence.', e:'In the 1970s, large psychiatric hospitals discharged hundreds of thousands of patients; without community support, many ended up homeless.'},
+      {t:'Meichenbaum\'s Cognitive Coping Rehearsal', d:'CBT technique: clients learn and practice adaptive self-talk statements to manage future stressors — preparing the mind the way vaccines prepare the immune system.', e:'Before a difficult surgery, a patient rehearses calming self-statements: "This will be uncomfortable but manageable; I\'ve handled hard things before."'},
+      {t:'Evidence-Based Practice', d:'Integrating the best available scientific findings with clinical expertise and patient preferences to guide therapeutic decisions — the gold standard in mental health care.', e:'A therapist chooses CBT for a client with OCD because meta-analyses consistently show it is more effective than other approaches for this condition.'},
+    ]
+  },
+
+  // ── MASTER DECK: All Units ─────────────────────────
+  all: { label:'All Units — Master Deck', tag:'All Units', color:'#1a1828', _master:true },
+
+  // ── EXAMPLE DECKS (Term → Example) ─────────────────
+  u0_ex: { label:'Unit 0 — Research Methods', tag:'Unit 0', color:'#9490a8', _exDeck:true, _srcKey:'u0' },
+  u1_ex: { label:'Unit 1 — Biological Bases', tag:'Unit 1', color:'#22D3EE', _exDeck:true, _srcKey:'u1' },
+  u2_ex: { label:'Unit 2 — Learning & Behavior', tag:'Unit 2', color:'#00b3a4', _exDeck:true, _srcKey:'u2' },
+  u3_ex: { label:'Unit 3 — Cognition', tag:'Unit 3', color:'#f0A500', _exDeck:true, _srcKey:'u3' },
+  u4_ex: { label:'Unit 4 — Development, Social & Personality', tag:'Unit 4', color:'#e0513a', _exDeck:true, _srcKey:'u4' },
+  u5_ex: { label:'Unit 5 — Mental & Physical Health', tag:'Unit 5', color:'#3daa6e', _exDeck:true, _srcKey:'u5' },
+  all_ex: { label:'All Units — Examples Master Deck', tag:'All Units', color:'#1a1828', _exDeck:true, _master:true }
+};
+
+// Build master deck lazily; example decks swap d↔e so all study modes work transparently
+function getFcCards(deckId) {
+  const deck = FC_DECKS[deckId];
+  if (!deck) return [];
+
+  // Helper: convert a card to example mode (back = example instead of definition)
+  function toExCard(c) {
+    if (!c.e) return null; // skip cards without examples
+    return { t: c.t, d: c.e, _origDef: c.d }; // d becomes the example
+  }
+
+  if (deckId === 'all') {
+    return Object.entries(FC_DECKS)
+      .filter(([k]) => k !== 'all' && !FC_DECKS[k]._exDeck)
+      .flatMap(([,d]) => d.cards);
+  }
+  if (deckId === 'all_ex') {
+    return Object.entries(FC_DECKS)
+      .filter(([k]) => k !== 'all' && !FC_DECKS[k]._exDeck)
+      .flatMap(([,d]) => d.cards)
+      .map(toExCard).filter(Boolean);
+  }
+  if (deck._exDeck && deck._srcKey) {
+    return (FC_DECKS[deck._srcKey]?.cards || []).map(toExCard).filter(Boolean);
+  }
+  return deck.cards || [];
+}
+
+</script>
+<script>
+// ── FLASHCARD APP STATE ──────────────────────────────
+let fcCurrentDeck = null;
+let fcCards = [];
+let fcQueue = [];
+let fcIndex = 0;
+let fcKnown = [];
+let fcMissed = [];
+let fcMode = 'browse';
+let fcFlipped = false;
+let fcMatchSel = null;
+let fcMatchMatched = 0;
+let fcMatchTimer = null;
+let fcMatchStart = null;
+let fcMatchUsedCards = [];  // Track cards used across match rounds
+let fcMCQIndex = 0;
+let fcMCQScore = 0;
+let fcMCQAnswered = false;
+let fcMCQAnsweredWrong = false;
+let fcInited = false;
+let fcIncorrectPile = [];  // ← Cards marked as incorrect from Match & MCQ modes
+
+function initFlashcards() {
+  if (!fcInited) {
+    renderFCHome();
+    fcInited = true;
+  }
+}
+
+function renderFCHome() {
+  const fv = document.getElementById('flashcards-view');
+  if (!fv) return;
+  fv.innerHTML = '';
+
+  // Home
+  const home = document.createElement('div');
+  home.id = 'fc-home';
+
+  const unitGroups = [
+    { label: 'Term → Definition', subtitle: 'Classic flashcard study', keys: ['u0','u1','u2','u3','u4','u5'], masterKey: 'all' },
+    { label: 'Term → Example', subtitle: 'Real-world application practice', keys: ['u0_ex','u1_ex','u2_ex','u3_ex','u4_ex','u5_ex'], masterKey: 'all_ex', isExample: true }
+  ];
+
+  function getDeckCount(k) {
+    const d = FC_DECKS[k];
+    if (k === 'all') return Object.entries(FC_DECKS).filter(([kk])=>!FC_DECKS[kk]._exDeck && kk!=='all').reduce((s,[,dd])=>s+dd.cards.length,0);
+    if (k === 'all_ex') return Object.entries(FC_DECKS).filter(([kk])=>!FC_DECKS[kk]._exDeck && kk!=='all').reduce((s,[,dd])=>s+(dd.cards||[]).filter(c=>c.e).length,0);
+    if (d._exDeck && d._srcKey) return (FC_DECKS[d._srcKey]?.cards||[]).filter(c=>c.e).length;
+    return (d.cards||[]).length;
+  }
+
+  home.innerHTML = `
+    <div class="fc-home-header">
+      <div class="fc-home-title">🃏 AP Psychology Flashcards</div>
+      <div class="fc-home-sub">Choose a deck to study — Browse, Learn, Match, or MCQ modes</div>
+    </div>
+    ${unitGroups.map(g => `
+      <div class="fc-unit-section">
+        <div class="fc-unit-label" style="display:flex;align-items:center;gap:10px">
+          ${g.label}${g.isExample ? ' <span style="font-size:0.95rem;background:#f0fdf4;color:#3daa6e;border:1px solid #bbf7d0;padding:2px 8px;border-radius:10px;font-family:var(--font-mono);font-weight:700">Real-world examples</span>' : ''}
+        </div>
+        <div style="font-size:0.98rem;color:var(--text3);margin-bottom:8px;margin-top:-2px">${g.subtitle}</div>
+        <div class="fc-deck-grid">
+          ${g.keys.map(k => {
+            const d = FC_DECKS[k];
+            const count = getDeckCount(k);
+            return `<button class="fc-deck-btn" onclick="fcLoadDeck('${k}')" style="border-color:${d.color}22${g.isExample ? ';border-style:dashed' : ''}">
+              <div class="fc-deck-tag" style="background:${d.color}18;color:${d.color}">${d.tag}</div>
+              <div class="fc-deck-name">${d.label}</div>
+              <div class="fc-deck-count">${count} terms${g.isExample ? ' · examples' : ''}</div>
+            </button>`;
+          }).join('')}
+          <button class="fc-deck-btn" onclick="fcLoadDeck('${g.masterKey}')" style="border-color:#1a182822${g.isExample ? ';border-style:dashed' : ''}">
+            <div class="fc-deck-tag" style="background:#1a182818;color:#1a1828">All Units</div>
+            <div class="fc-deck-name">${g.isExample ? 'All Units — Examples Master Deck' : 'All Units — Master Deck'}</div>
+            <div class="fc-deck-count">${getDeckCount(g.masterKey)} terms${g.isExample ? ' · examples' : ''}</div>
+          </button>
+        </div>
+      </div>
+    `).join('')}
+  `;
+
+  fv.appendChild(home);
+}
+
+function fcLoadDeck(deckId) {
+  fcCurrentDeck = deckId;
+  if(FC_DECKS[deckId]) tmrSetContext('flashcards:' + deckId, FC_DECKS[deckId].label);
+  fcCards = getFcCards(deckId).map(c => ({...c}));
+  fcQueue = shuffle([...fcCards]);
+  fcIndex = 0; fcKnown = []; fcMissed = [];
+  fcIncorrectPile = [];  // ← Reset incorrect pile when loading new deck
+  fcMatchUsedCards = [];  // ← Reset match history for new deck
+  fcMCQUsedCards = [];    // ← Reset MCQ history for new deck
+  fcUpdateIncorrectBadge();  // ← Show badge if pile has items from previous deck
+  renderFCStudy();
+  fcSetMode('browse');
+}
+
+function fcIsExampleDeck() {
+  return !!(FC_DECKS[fcCurrentDeck]?._exDeck);
+}
+
+function renderFCStudy() {
+  const isEx = fcIsExampleDeck();
+  const backLabel = isEx ? 'Example' : 'Definition';
+  const matchStatus = isEx ? 'Match each term with its example' : 'Match each term with its definition';
+  const fv = document.getElementById('flashcards-view');
+  fv.innerHTML = `
+    <div id="fc-study" class="active">
+      <div id="fc-nav">
+        <div id="fc-deck-title">${FC_DECKS[fcCurrentDeck].label}${isEx ? ' <span style="font-size:0.9rem;background:#f0fdf4;color:#3daa6e;border:1px solid #bbf7d0;padding:2px 7px;border-radius:8px;font-family:var(--font-mono);font-weight:700;vertical-align:middle">examples</span>' : ''} &nbsp;<span style="font-size:0.97rem;color:#9490a8;font-family:var(--font-mono);font-weight:400">${fcCards.length} terms</span></div>
+        <div class="fc-mode-tabs">
+          <button class="fc-mode-btn active" id="fcbtn-browse" onclick="fcSetMode('browse')">📋 Browse</button>
+          <button class="fc-mode-btn" id="fcbtn-learn" onclick="fcSetMode('learn')">🃏 Learn</button>
+          <button class="fc-mode-btn" id="fcbtn-match" onclick="fcSetMode('match')">⚡ Match</button>
+          <button class="fc-mode-btn" id="fcbtn-mcq" onclick="fcSetMode('mcq')">📝 MCQ</button>
+          <button class="fc-mode-btn" id="fcbtn-incorrect" onclick="fcSetMode('incorrect')">📚 Pile <span id="fc-pile-badge" style="margin-left:4px;font-size:0.95rem;background:rgba(229,62,62,0.2);color:#dc2626;padding:1px 6px;border-radius:6px;display:none">0</span></button>
+        </div>
+        <button class="fc-back-btn" onclick="fcGoHome()">← Decks</button>
+      </div>
+      <!-- Browse -->
+      <div id="fc-browse">
+        <div class="fc-search-wrap">
+          <span class="fc-search-icon">🔍</span>
+          <input id="fc-search" type="text" placeholder="Search terms or ${isEx ? 'examples' : 'definitions'}…" oninput="fcRenderBrowse(this.value)">
+        </div>
+        <div id="fc-count-badge" class="fc-count-badge"></div>
+        <div id="fc-list"></div>
+      </div>
+      <!-- Learn -->
+      <div id="fc-learn">
+        <div class="fc-progress-wrap">
+          <div class="fc-prog-track"><div class="fc-prog-bar" id="fc-prog" style="background:${FC_DECKS[fcCurrentDeck].color}"></div></div>
+          <span class="fc-prog-label" id="fc-prog-label">0 / 0</span>
+        </div>
+        <div class="fc-card-wrap" id="fc-card" onclick="fcFlip()">
+          <div class="fc-card-inner">
+            <div class="fc-card-face">
+              <div class="fc-card-label">Term</div>
+              <div class="fc-card-term" id="fc-term"></div>
+            </div>
+            <div class="fc-card-face fc-card-back-face">
+              <div class="fc-card-label" id="fc-back-label">${backLabel}</div>
+              <div class="fc-card-def" id="fc-def"></div>
+            </div>
+          </div>
+        </div>
+        <div class="fc-flip-hint">Click card or press Space to flip &nbsp;·&nbsp; → Got it &nbsp;·&nbsp; ← Missed</div>
+        <div class="fc-learn-btns" id="fc-learn-btns">
+          <button class="fc-learn-btn fc-btn-miss" onclick="fcMark(false)">✕ Missed</button>
+          <button class="fc-learn-btn fc-btn-got" onclick="fcMark(true)">✓ Got it</button>
+        </div>
+        <div id="fc-result">
+          <div class="fc-result-title">Round complete!</div>
+          <div class="fc-stats">
+            <div class="fc-stat good"><div class="sn" id="fc-r-got">0</div><div class="sl">Got it</div></div>
+            <div class="fc-stat miss"><div class="sn" id="fc-r-miss">0</div><div class="sl">Missed</div></div>
+          </div>
+          <div class="fc-result-btns">
+            <button class="fc-r-btn primary" onclick="fcRestartAll()">🔄 All cards again</button>
+            <button class="fc-r-btn" id="fc-r-missed-btn" onclick="fcRestartMissed()">✕ Study missed only</button>
+          </div>
+        </div>
+      </div>
+      <!-- Match -->
+      <div id="fc-match">
+        <div class="fc-match-header">
+          <div>
+            <div style="font-size:1.08rem;color:#555;font-weight:500;margin-bottom:6px" id="fc-match-status">${matchStatus}</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:1.02rem;color:#666">
+              Pairs: <select id="fc-match-size" style="padding:4px 8px;border-radius:7px;border:1px solid #d0cfd6;background:#fff;font-size:1.02rem" onchange="fcSetupMatch()">
+                <option value="4">4</option><option value="6" selected>6</option><option value="8">8</option><option value="10">10</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="fc-match-timer" id="fc-match-timer"></div>
+            <button class="fc-r-btn primary" onclick="fcStartMatch()">Start</button>
+          </div>
+        </div>
+        <div class="fc-match-grid" id="fc-match-grid"></div>
+        <div id="fc-match-done" class="fc-match-done" style="display:none">
+          <h3>🎉 All matched!</h3><p id="fc-match-time-result"></p>
+          <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+            <button class="fc-r-btn primary" id="fc-match-continue-btn" onclick="fcStartMatch(true)" style="display:none">▶ Continue</button>
+            <button class="fc-r-btn" onclick="fcStartMatch()">🔄 Restart</button>
+          </div>
+        </div>
+      </div>
+      <!-- MCQ -->
+      <div id="fc-mcq">
+        <div id="fc-mcq-range-picker" style="max-width:580px;margin:0 auto;padding:14px 0">
+          <div style="font-size:1.12rem;font-weight:700;color:var(--text);margin-bottom:4px">📝 Choose Card Range</div>
+          <div style="font-size:0.98rem;color:var(--text3);margin-bottom:14px;font-family:var(--font-mono)" id="fc-mcq-total-label"></div>
+          <div id="fc-mcq-range-btns" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px"></div>
+        </div>
+        <div id="fc-mcq-active" style="display:none">
+          <div class="fc-mcq-score" id="fc-mcq-score"></div>
+          <div class="fc-mcq-q" id="fc-mcq-q"></div>
+          <div class="fc-mcq-opts" id="fc-mcq-opts"></div>
+          <div style="text-align:center;margin-top:12px">
+            <button class="fc-r-btn" id="fc-mcq-next" onclick="fcMCQNext()" style="display:none">Next →</button>
+          </div>
+          <div id="fc-mcq-result" style="display:none;text-align:center;padding:1.5rem">
+            <div class="fc-result-title" id="fc-mcq-final-title"></div>
+            <div class="fc-stats">
+              <div class="fc-stat good"><div class="sn" id="fc-mcq-r-got">0</div><div class="sl">Correct</div></div>
+              <div class="fc-stat miss"><div class="sn" id="fc-mcq-r-miss">0</div><div class="sl">Missed</div></div>
+            </div>
+            <div class="fc-result-btns">
+              <button class="fc-r-btn" onclick="fcShowMCQRangePicker()">← Pick range</button>
+              <button class="fc-r-btn primary" onclick="fcStartMCQWithRange(fcMCQRangeStart, fcMCQRangeEnd)">🔄 Retry same range</button>
+              <button class="fc-r-btn" onclick="fcSetMode('browse')">Browse cards</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Incorrect Pile Manager -->
+      <div id="fc-incorrect" style="display:none">
+        <div style="max-width:580px;margin:0 auto;padding:14px 0">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+            <div>
+              <div style="font-size:1.12rem;color:#555;font-weight:600;margin-bottom:4px">📚 Incorrect Pile</div>
+              <div style="font-size:0.98rem;color:#888;font-family:var(--font-mono)"><span id="fc-incorrect-count">0</span> cards</div>
+            </div>
+            <div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+              <button class="fc-r-btn" onclick="fcShowIncorrectRemoveMenu()" style="font-size:1.02rem;padding:7px 14px" id="fc-incorrect-manage-btn" style="display:none">⚙ Manage</button>
+            </div>
+          </div>
+          <div id="fc-incorrect-list" style="display:flex;flex-direction:column;gap:8px">
+            <div style="color:#888;font-size:1.06rem;text-align:center;padding:20px;background:#f9f9f7;border-radius:10px;border:1px solid #e8e7e0">No cards in incorrect pile yet</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function fcGoHome() {
+  if (fcMatchTimer) { clearInterval(fcMatchTimer); fcMatchTimer = null; }
+  renderFCHome();
+}
+
+function fcSetMode(mode) {
+  fcMode = mode;
+  ['browse','learn','match','mcq','incorrect'].forEach(m => {
+    const el = document.getElementById('fc-'+m);
+    const btn = document.getElementById('fcbtn-'+m);
+    if (el) el.style.display = m === mode ? 'block' : 'none';
+    if (btn) btn.classList.toggle('active', m === mode);
+  });
+  if (mode === 'browse') fcRenderBrowse('');
+  if (mode === 'learn') fcStartLearn();
+  if (mode === 'match') fcSetupMatch();
+  if (mode === 'mcq') fcStartMCQ();
+  if (mode === 'incorrect') fcRenderIncorrectPile();
+}
+
+function fcRenderBrowse(filter) {
+  const q = (filter||'').toLowerCase();
+  const isEx = fcIsExampleDeck();
+  const filtered = q ? fcCards.filter(c => c.t.toLowerCase().includes(q) || c.d.toLowerCase().includes(q)) : fcCards;
+  const badge = document.getElementById('fc-count-badge');
+  const list = document.getElementById('fc-list');
+  if (badge) badge.textContent = filtered.length + ' / ' + fcCards.length + ' terms';
+  if (list) list.innerHTML = filtered.map(c => {
+    const backLabel = isEx ? 'Example' : 'Definition';
+    const backStyle = isEx
+      ? 'color:#2d7a4f;background:#f0fdf4;padding:8px 10px;border-radius:7px;border:1px solid #d1fae5;margin-top:4px;line-height:1.55'
+      : '';
+    return `<div class="fc-term-row">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <div class="fc-term-word">${esc(c.t)}</div>
+        <div style="font-size:0.82rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;font-family:var(--font-mono);white-space:nowrap;flex-shrink:0">${backLabel}</div>
+      </div>
+      <div class="fc-term-def" style="${backStyle}">${esc(c.d)}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── LEARN MODE ─────────────────────────────────────────
+function fcStartLearn() {
+  fcQueue = shuffle([...fcCards]);
+  fcIndex = 0; fcKnown = []; fcMissed = []; fcFlipped = false;
+  const card = document.getElementById('fc-card');
+  if (card) card.classList.remove('flipped');
+  const res = document.getElementById('fc-result');
+  if (res) res.style.display = 'none';
+  const btns = document.getElementById('fc-learn-btns');
+  if (btns) btns.style.display = 'flex';
+  fcShowCard();
+}
+
+function fcShowCard() {
+  const prog = document.getElementById('fc-prog');
+  const label = document.getElementById('fc-prog-label');
+  const total = fcQueue.length;
+  const done = fcIndex;
+  if (prog) prog.style.width = total ? (done/total*100)+'%' : '0%';
+  if (label) label.textContent = done + ' / ' + total;
+  if (fcIndex >= fcQueue.length) { fcShowResult(); return; }
+  const c = fcQueue[fcIndex];
+  const termEl = document.getElementById('fc-term');
+  const defEl = document.getElementById('fc-def');
+  if (termEl) termEl.textContent = c.t;
+  if (defEl) defEl.textContent = c.d;
+  fcFlipped = false;
+  const card = document.getElementById('fc-card');
+  if (card) card.classList.remove('flipped');
+}
+
+function fcFlip() {
+  fcFlipped = !fcFlipped;
+  const card = document.getElementById('fc-card');
+  if (card) card.classList.toggle('flipped', fcFlipped);
+}
+
+function fcMark(knew) {
+  if (!fcFlipped) { fcFlip(); return; }
+  if (knew) fcKnown.push(fcQueue[fcIndex]);
+  else fcMissed.push(fcQueue[fcIndex]);
+  fcIndex++;
+  fcShowCard();
+}
+
+function fcShowResult() {
+  const res = document.getElementById('fc-result');
+  const btns = document.getElementById('fc-learn-btns');
+  const prog = document.getElementById('fc-prog-label');
+  if (res) res.style.display = 'block';
+  if (btns) btns.style.display = 'none';
+  if (prog) prog.textContent = fcQueue.length + ' / ' + fcQueue.length;
+  const got = document.getElementById('fc-r-got');
+  const miss = document.getElementById('fc-r-miss');
+  const mb = document.getElementById('fc-r-missed-btn');
+  if (got) got.textContent = fcKnown.length;
+  if (miss) miss.textContent = fcMissed.length;
+  if (mb) mb.style.display = fcMissed.length ? 'inline-block' : 'none';
+  // THE CURVE: record flashcard session score
+  const _fcTotal = fcKnown.length + fcMissed.length;
+  const _fcPct   = _fcTotal > 0 ? Math.round((fcKnown.length / _fcTotal) * 100) : 0;
+  if (fcCurrentDeck && fcCurrentDeck !== 'all') {
+    UNITS_DATA.forEach(function(u) {
+      if ('u'+u.num === fcCurrentDeck || u.id === fcCurrentDeck) {
+        u.topics.forEach(function(t) { if(isTopicDone(u.id,t.id)) crvRecordReview(u.id,t.id,_fcPct); });
+      }
+    });
+  }
+}
+
+function fcRestartAll() {
+  const res = document.getElementById('fc-result');
+  if (res) res.style.display = 'none';
+  fcStartLearn();
+}
+
+function fcRestartMissed() {
+  const res = document.getElementById('fc-result');
+  if (res) res.style.display = 'none';
+  if (!fcMissed.length) return;
+  fcQueue = shuffle([...fcMissed]);
+  fcIndex = 0; fcKnown = []; fcMissed = []; fcFlipped = false;
+  const btns = document.getElementById('fc-learn-btns');
+  if (btns) btns.style.display = 'flex';
+  fcShowCard();
+}
+
+// ── MATCH MODE ─────────────────────────────────────────
+function fcSetupMatch() {
+  const done = document.getElementById('fc-match-done');
+  if (done) done.style.display = 'none';
+  const grid = document.getElementById('fc-match-grid');
+  if (grid) grid.innerHTML = '<div style="color:#888;font-size:1.06rem;padding:12px">Press Start to begin matching</div>';
+  const timer = document.getElementById('fc-match-timer');
+  if (timer) timer.textContent = '';
+  if (fcMatchTimer) { clearInterval(fcMatchTimer); fcMatchTimer = null; }
+}
+
+function fcStartMatch(continueMode) {
+  const n = parseInt(document.getElementById('fc-match-size')?.value||6);
+  if (!continueMode) fcMatchUsedCards = [];  // Fresh start resets history
+  const usedTerms = new Set(fcMatchUsedCards.map(c => c.t));
+  const remaining = fcCards.filter(c => !usedTerms.has(c.t));
+  const pick = Math.min(n, remaining.length);
+  if (pick === 0) { fcMatchUsedCards = []; return fcStartMatch(); }  // All used, auto-restart
+  const pool = shuffle([...remaining]).slice(0, pick);
+  pool.forEach(c => fcMatchUsedCards.push(c));  // Mark these as used
+  fcMatchSel = null; fcMatchMatched = 0;
+  if (fcMatchTimer) { clearInterval(fcMatchTimer); fcMatchTimer = null; }
+  fcMatchStart = Date.now();
+  fcMatchTimer = setInterval(() => {
+    const t = document.getElementById('fc-match-timer');
+    if (t) { const s=Math.floor((Date.now()-fcMatchStart)/1000); t.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+  }, 500);
+
+  const done = document.getElementById('fc-match-done');
+  if (done) done.style.display = 'none';
+
+  const items = shuffle([
+    ...pool.map((c,i) => ({id:i, kind:'term', text:c.t, pair:i})),
+    ...pool.map((c,i) => ({id:i+pick, kind:'def',  text:c.d, pair:i}))
+  ]);
+
+  const grid = document.getElementById('fc-match-grid');
+  if (!grid) return;
+  grid.innerHTML = items.map(item =>
+    `<div class="fc-match-card" id="fcm-${item.id}" data-pair="${item.pair}" data-kind="${item.kind}" onclick="fcMatchClick(this)">${esc(item.text)}</div>`
+  ).join('');
+
+  const status = document.getElementById('fc-match-status');
+  if (status) status.textContent = `Match ${pick} terms with their definitions`;
+}
+
+function fcMatchClick(el) {
+  if (el.classList.contains('matched')) return;
+  // Remove wrong state from any previous failed attempt
+  document.querySelectorAll('.fc-match-card.wrong').forEach(c => c.classList.remove('wrong'));
+  if (fcMatchSel === el) { el.classList.remove('sel'); fcMatchSel = null; return; }
+  if (fcMatchSel) {
+    const a = fcMatchSel, b = el;
+    a.classList.remove('sel');
+    if (a.dataset.pair === b.dataset.pair && a.dataset.kind !== b.dataset.kind) {
+      a.classList.add('matched'); b.classList.add('matched');
+      fcMatchSel = null; fcMatchMatched++;
+      const total = document.querySelectorAll('.fc-match-card').length / 2;
+      if (fcMatchMatched === total) {
+        clearInterval(fcMatchTimer); fcMatchTimer = null;
+        const s = Math.floor((Date.now()-fcMatchStart)/1000);
+        const done = document.getElementById('fc-match-done');
+        const t = document.getElementById('fc-match-time-result');
+        if (t) t.textContent = `Completed in ${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}!`;
+        if (done) done.style.display = 'block';
+        // Show/hide continue button
+        const usedTerms = new Set(fcMatchUsedCards.map(c => c.t));
+        const rem = fcCards.filter(c => !usedTerms.has(c.t)).length;
+        const contBtn = document.getElementById('fc-match-continue-btn');
+        if (contBtn) {
+          if (rem > 0) { contBtn.style.display = ''; contBtn.textContent = '▶ Continue (' + rem + ' remaining)'; }
+          else { contBtn.style.display = 'none'; }
+        }
+      }
+    } else {
+      a.classList.add('wrong'); b.classList.add('wrong');
+      // Add to incorrect pile
+      const pair = a.dataset.pair;
+      const matchCard = fcCards.find((c,idx) => {
+        const pool = document.querySelectorAll('.fc-match-card');
+        return true;
+      });
+      // Find the actual card by matching pair index from current match pool
+      const termEl = a.dataset.kind === 'term' ? a : b;
+      const termText = termEl.textContent.trim();
+      const card = fcCards.find(c => c.t === termText);
+      if (card && !fcIncorrectPile.find(c => c.t === card.t && c.d === card.d)) {
+        fcIncorrectPile.push({...card});
+        fcUpdateIncorrectBadge();
+      }
+      fcMatchSel = null;
+    }
+  } else {
+    el.classList.add('sel');
+    fcMatchSel = el;
+  }
+}
+
+// ── MCQ MODE ───────────────────────────────────────────
+let fcMCQQueue = [];
+let fcMCQUsedCards = [];  // Track all cards used across rounds
+let fcMatchPool = [];  // ← Track cards in current match game
+let fcMCQRangeStart = 0;
+let fcMCQRangeEnd = 0;
+
+function fcShowMCQRangePicker() {
+  const picker = document.getElementById('fc-mcq-range-picker');
+  const active = document.getElementById('fc-mcq-active');
+  if (picker) picker.style.display = '';
+  if (active) active.style.display = 'none';
+  const total = fcCards.length;
+  const label = document.getElementById('fc-mcq-total-label');
+  if (label) label.textContent = total + ' cards in this deck';
+  const container = document.getElementById('fc-mcq-range-btns');
+  if (!container) return;
+  const chunkSize = 10;
+  let html = '';
+  // "All cards" button
+  html += `<button class="fc-r-btn primary" onclick="fcStartMCQWithRange(0,${total})" style="width:100%;margin-bottom:6px;font-size:1.05rem;padding:12px">🃏 All ${total} cards</button>`;
+  // Range buttons
+  for (let i = 0; i < total; i += chunkSize) {
+    const end = Math.min(i + chunkSize, total);
+    const count = end - i;
+    html += `<button class="fc-r-btn" onclick="fcStartMCQWithRange(${i},${end})" style="flex:1;min-width:120px;padding:10px 14px;font-size:1.02rem">
+      <div style="font-weight:700">${i + 1} – ${end}</div>
+      <div style="font-size:0.85rem;opacity:0.6;margin-top:2px">${count} cards</div>
+    </button>`;
+  }
+  container.innerHTML = html;
+}
+
+function fcStartMCQWithRange(start, end) {
+  fcMCQRangeStart = start;
+  fcMCQRangeEnd = end;
+  fcMCQIndex = 0; fcMCQScore = 0;
+  fcMCQUsedCards = [];
+  fcMCQQueue = shuffle(fcCards.slice(start, end));
+  const picker = document.getElementById('fc-mcq-range-picker');
+  const active = document.getElementById('fc-mcq-active');
+  if (picker) picker.style.display = 'none';
+  if (active) active.style.display = '';
+  const res = document.getElementById('fc-mcq-result');
+  const q = document.getElementById('fc-mcq-q');
+  const opts = document.getElementById('fc-mcq-opts');
+  const next = document.getElementById('fc-mcq-next');
+  if (res) res.style.display = 'none';
+  if (q) q.style.display = '';
+  if (opts) opts.style.display = '';
+  if (next) next.style.display = 'none';
+  fcShowMCQ();
+}
+
+function fcStartMCQ(continueMode) {
+  if (!continueMode) {
+    fcShowMCQRangePicker();
+  } else {
+    fcStartMCQWithRange(fcMCQRangeStart, fcMCQRangeEnd);
+  }
+}
+
+function fcShowMCQ() {
+  const scoreEl = document.getElementById('fc-mcq-score');
+  const qEl = document.getElementById('fc-mcq-q');
+  const optsEl = document.getElementById('fc-mcq-opts');
+  const nextEl = document.getElementById('fc-mcq-next');
+  if (fcMCQIndex >= fcMCQQueue.length) { fcShowMCQResult(); return; }
+  const card = fcMCQQueue[fcMCQIndex];
+  const total = fcMCQQueue.length;
+  if (scoreEl) scoreEl.textContent = (fcMCQIndex+1) + ' / ' + total + '  ·  Score: ' + fcMCQScore;
+  // Show definition as the question; options are terms (so the term never appears in the question)
+  if (qEl) qEl.textContent = card.d;
+  // 4 options: correct term + 3 random wrong terms
+  const wrong = shuffle(fcCards.filter(c=>c.t!==card.t)).slice(0,3);
+  const opts = shuffle([card, ...wrong]);
+  fcMCQAnswered = false;
+  fcMCQAnsweredWrong = false;
+  if (optsEl) optsEl.innerHTML = opts.map((o,i) =>
+    `<button class="fc-mcq-opt" id="fcmcq-${i}" onclick="fcPickMCQ(this,'${esc(o.t).replace(/'/g,"\\'")}','${esc(card.t).replace(/'/g,"\\'")}','${esc(card.d).replace(/'/g,"\\'")}')">
+      ${esc(o.t)}
+    </button>`
+  ).join('');
+  if (nextEl) nextEl.style.display = 'none';
+}
+
+function fcPickMCQ(el, chosen, correct, correctDef) {
+  if (el.classList.contains('wrong') || el.classList.contains('correct')) return;
+  const isCorrect = (chosen === correct);
+  const card = fcMCQQueue[fcMCQIndex];
+  if (isCorrect) {
+    el.classList.add('correct');
+    document.querySelectorAll('.fc-mcq-opt').forEach(o => { if (o !== el) o.classList.add('disabled'); });
+    if (!fcMCQAnsweredWrong) fcMCQScore++;
+    const next = document.getElementById('fc-mcq-next');
+    if (next) { next.style.display = 'inline-block'; next.textContent = fcMCQIndex+1 >= fcMCQQueue.length ? 'See results →' : 'Next →'; }
+  } else {
+    el.classList.add('wrong');
+    el.classList.add('disabled');
+    fcMCQAnsweredWrong = true;
+    if (!fcIncorrectPile.find(c => c.t === card.t && c.d === card.d)) {
+      fcIncorrectPile.push({...card});
+    }
+    fcUpdateIncorrectBadge();
+  }
+}
+
+function fcMCQNext() {
+  fcMCQIndex++;
+  fcShowMCQ();
+}
+
+function fcShowMCQResult() {
+  const res = document.getElementById('fc-mcq-result');
+  const q = document.getElementById('fc-mcq-q');
+  const opts = document.getElementById('fc-mcq-opts');
+  const title = document.getElementById('fc-mcq-final-title');
+  const got = document.getElementById('fc-mcq-r-got');
+  const miss = document.getElementById('fc-mcq-r-miss');
+  const score = document.getElementById('fc-mcq-score');
+  const next = document.getElementById('fc-mcq-next');
+  const total = fcMCQQueue.length;
+  if (q) q.style.display = 'none';
+  if (opts) opts.style.display = 'none';
+  if (next) next.style.display = 'none';
+  if (res) res.style.display = 'block';
+  const pct = Math.round(fcMCQScore/total*100);
+  if (title) title.textContent = pct >= 80 ? '🎉 ' + pct + '% — Excellent!' : pct >= 60 ? '📈 ' + pct + '% — Good job!' : '📚 ' + pct + '% — Keep studying!';
+  if (got) got.textContent = fcMCQScore;
+  if (miss) miss.textContent = total - fcMCQScore;
+  if (score) score.textContent = 'Cards ' + (fcMCQRangeStart+1) + '–' + fcMCQRangeEnd + '  ·  ' + pct + '%';
+}
+
+// ── INCORRECT PILE MANAGEMENT ───────────────────────────────────────────
+function fcUpdateIncorrectBadge() {
+  const badge = document.getElementById('fc-pile-badge');
+  const btn = document.getElementById('fcbtn-incorrect');
+  const count = fcIncorrectPile.length;
+  if (badge) {
+    badge.textContent = count;
+    badge.style.display = count > 0 ? 'inline-block' : 'none';
+  }
+  if (btn) btn.style.opacity = count > 0 ? '1' : '0.5';
+}
+
+function fcRenderIncorrectPile() {
+  const list = document.getElementById('fc-incorrect-list');
+  const countEl = document.getElementById('fc-incorrect-count');
+  const manageBtn = document.getElementById('fc-incorrect-manage-btn');
+  
+  if (!list) return;
+  
+  if (countEl) countEl.textContent = fcIncorrectPile.length;
+  if (manageBtn) manageBtn.style.display = fcIncorrectPile.length > 0 ? 'inline-block' : 'none';
+  
+  if (fcIncorrectPile.length === 0) {
+    list.innerHTML = '<div style="color:#888;font-size:1.06rem;text-align:center;padding:20px;background:#f9f9f7;border-radius:10px;border:1px solid #e8e7e0">No cards in incorrect pile yet. Cards you get wrong in Match or MCQ will appear here.</div>';
+  } else {
+    list.innerHTML = fcIncorrectPile.map((card, idx) => `
+      <div style="background:#fff;border:1px solid #e8e7e0;border-radius:9px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;color:#1a1828;font-size:1.06rem;margin-bottom:4px">${esc(card.t)}</div>
+          <div style="font-size:1.0rem;color:#555;line-height:1.5">${esc(card.d)}</div>
+        </div>
+        <button class="fc-r-btn" style="flex-shrink:0;padding:6px 10px;font-size:1.0rem" onclick="fcRemoveFromIncorrect(${idx})">✕</button>
+      </div>
+    `).join('');
+  }
+}
+
+function fcRemoveFromIncorrect(idx) {
+  fcIncorrectPile.splice(idx, 1);
+  fcUpdateIncorrectBadge();
+  fcRenderIncorrectPile();
+}
+
+function fcShowIncorrectRemoveMenu() {
+  const menu = document.createElement('div');
+  menu.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border:1.5px solid #d0cfd6;border-radius:12px;padding:20px;z-index:1000;box-shadow:0 20px 60px rgba(0,0,0,0.15);max-width:340px';
+  
+  menu.innerHTML = `
+    <div style="font-size:1.15rem;font-weight:700;color:#1a1828;margin-bottom:14px">Manage Incorrect Pile</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+      <button class="fc-r-btn" style="text-align:left;padding:10px 14px;background:#fff1ee;border-color:#fecaca;color:#991b1b;font-size:1.06rem" onclick="fcRemoveIncorrectWhere('first');document.body.removeChild(this.closest('div'))" title="Remove the first card you added">🗑 Remove first card</button>
+      <button class="fc-r-btn" style="text-align:left;padding:10px 14px;background:#fff1ee;border-color:#fecaca;color:#991b1b;font-size:1.06rem" onclick="fcRemoveIncorrectWhere('last');document.body.removeChild(this.closest('div'))" title="Remove the most recent card">🗑 Remove last card</button>
+      <button class="fc-r-btn" style="text-align:left;padding:10px 14px;background:#fee2e2;border-color:#fca5a5;color:#7f1d1d;font-size:1.06rem;font-weight:700" onclick="fcRemoveIncorrectWhere('all');document.body.removeChild(this.closest('div'))" title="Clear the entire pile">🗑 Clear all (${fcIncorrectPile.length} cards)</button>
+    </div>
+    <button class="fc-r-btn" style="width:100%;padding:9px 14px;font-size:1.06rem" onclick="document.body.removeChild(this.closest('div'))">Cancel</button>
+  `;
+  
+  // Add backdrop
+  const backdrop = document.createElement('div');
+  backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:999';
+  backdrop.onclick = () => { document.body.removeChild(backdrop); document.body.removeChild(menu); };
+  
+  document.body.appendChild(backdrop);
+  document.body.appendChild(menu);
+}
+
+function fcRemoveIncorrectWhere(where) {
+  if (where === 'first') {
+    fcIncorrectPile.shift();
+  } else if (where === 'last') {
+    fcIncorrectPile.pop();
+  } else if (where === 'all') {
+    fcIncorrectPile = [];
+  }
+  fcUpdateIncorrectBadge();
+  fcRenderIncorrectPile();
+}
+
+// keyboard shortcuts for learn mode
+document.addEventListener('keydown', e => {
+  if (currentView !== 'flashcards' || fcMode !== 'learn') return;
+  if (document.getElementById('fc-result')?.style.display === 'block') return;
+  if (e.code === 'Space') { e.preventDefault(); fcFlip(); }
+  if (e.code === 'ArrowRight') fcMark(true);
+  if (e.code === 'ArrowLeft') fcMark(false);
+});
+
+
+// ── INIT ───────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  initFlashcards();
+});
+</script>
+</body>
+</html>
